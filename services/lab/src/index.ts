@@ -1,0 +1,1 @@
+export { default as labOrdersRouter } from "./routes/orders.routes";

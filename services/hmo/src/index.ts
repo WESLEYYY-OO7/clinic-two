@@ -1,0 +1,1 @@
+export { default as claimsRouter } from "./routes/claims.routes";
