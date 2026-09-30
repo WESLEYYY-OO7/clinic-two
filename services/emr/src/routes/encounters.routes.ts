@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { auditFromRequest } from "@clinic-two/audit";
 import { can } from "@clinic-two/auth";
+import { prisma } from "@clinic-two/db-client";
 import { EncounterInput } from "../validators/encounter.schema";
 import {
   createEncounter,
@@ -10,6 +11,7 @@ import {
 
 const router = Router();
 
+// POST /api/encounters — create
 router.post("/", async (req, res) => {
   const ctx = req.user!;
   if (!can(ctx.role, "encounter:write")) {
@@ -33,6 +35,7 @@ router.post("/", async (req, res) => {
   res.status(201).json({ data: encounter });
 });
 
+// GET /api/encounters — list all (optionally filtered by patientId)
 router.get("/", async (req, res) => {
   const ctx = req.user!;
   if (!can(ctx.role, "encounter:read")) {
@@ -44,6 +47,31 @@ router.get("/", async (req, res) => {
   res.json({ data: encounters });
 });
 
+// GET /api/encounters/:id — single encounter
+router.get("/:id", async (req, res) => {
+  const ctx = req.user!;
+  if (!can(ctx.role, "encounter:read")) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  const encounter = await prisma.encounter.findFirst({
+    where: { id: req.params.id, tenantId: ctx.tenantId }
+  });
+
+  if (!encounter) {
+    return res.status(404).json({ error: "Encounter not found" });
+  }
+
+  await auditFromRequest(req, {
+    action: "READ",
+    resourceType: "Encounter",
+    resourceId: encounter.id
+  });
+
+  res.json({ data: encounter });
+});
+
+// PATCH /api/encounters/:id/finish — close the encounter
 router.patch("/:id/finish", async (req, res) => {
   const ctx = req.user!;
   if (!can(ctx.role, "encounter:write")) {
