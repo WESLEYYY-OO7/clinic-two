@@ -187,3 +187,69 @@ export const diagnoses = {
     certainty?: string;
   }) => api.post<{ data: DiagnosisRecord }>("/api/diagnoses", payload)
 };
+
+// ── Drugs ──
+export interface DrugRecord {
+  id: string;
+  name: string;
+  genericName: string | null;
+  form: string | null;
+  strength: string | null;
+}
+
+export const drugs = {
+  list: () => api.get<{ data: DrugRecord[] }>("/api/drugs")
+};
+
+// ── Prescriptions + CDS ──
+export interface PrescriptionRecord {
+  id: string;
+  patientId: string;
+  drugId: string;
+  dose: string;
+  frequency: string;
+  durationDays: number;
+  status: string;
+  createdAt: string;
+  drug: DrugRecord;
+}
+
+export interface CdsAlert {
+  severity: "info" | "warning" | "critical";
+  code: string;
+  message: string;
+  source: string;
+  drug?: string;
+}
+
+export interface CdsResult {
+  alerts: CdsAlert[];
+  blocking: boolean;
+}
+
+export const prescriptions = {
+  list: (patientId?: string) =>
+    api.get<{ data: PrescriptionRecord[] }>(
+      `/api/prescriptions${patientId ? `?patientId=${patientId}` : ""}`
+    ),
+
+  preview: (patientId: string, drugId: string) =>
+    api.post<{ data: CdsResult }>("/api/prescriptions/preview", {
+      patientId,
+      drugId
+    }),
+
+  create: (payload: {
+    patientId: string;
+    drugId: string;
+    encounterId?: string;
+    dose: string;
+    frequency: string;
+    durationDays: number;
+    overrideReason?: string;
+  }) =>
+    api.post<{
+      data: PrescriptionRecord;
+      cds: CdsResult & { overridden: boolean };
+    }>("/api/prescriptions", payload)
+};

@@ -12,6 +12,7 @@ import {
   type VitalRecord,
   type NoteRecord
 } from "@/lib/api";
+import { PrescriptionsTab } from "@/components/PrescriptionsTab";
 
 interface Patient {
   id: string;
@@ -23,6 +24,8 @@ interface Patient {
   allergies: string[];
 }
 
+type Tab = "vitals" | "notes" | "diagnoses" | "prescriptions" | "fhir";
+
 export default function EncounterDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -33,7 +36,7 @@ export default function EncounterDetailPage() {
   const [vitals, setVitals] = useState<VitalRecord[]>([]);
   const [notes, setNotes] = useState<NoteRecord[]>([]);
   const [diagnoses, setDiagnoses] = useState<any[]>([]);
-  const [tab, setTab] = useState<"vitals" | "notes" | "diagnoses" | "fhir">("vitals");
+  const [tab, setTab] = useState<Tab>("vitals");
   const [error, setError] = useState("");
 
   const [vitalForm, setVitalForm] = useState({
@@ -170,6 +173,8 @@ export default function EncounterDetailPage() {
 
   const isFinished = encounter.status === "FINISHED";
 
+  const tabs: Tab[] = ["vitals", "notes", "diagnoses", "prescriptions", "fhir"];
+
   return (
     <div>
       <div className="mb-6 flex items-start justify-between">
@@ -221,7 +226,7 @@ export default function EncounterDetailPage() {
       )}
 
       <div className="mb-6 flex gap-1 border-b">
-        {(["vitals", "notes", "diagnoses", "fhir"] as const).map((t) => (
+        {tabs.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -498,6 +503,10 @@ export default function EncounterDetailPage() {
             )}
           </div>
         </div>
+      )}
+
+      {tab === "prescriptions" && (
+        <PrescriptionsTab patientId={patient.id} encounterId={encounter.id} />
       )}
 
       {tab === "fhir" && (
