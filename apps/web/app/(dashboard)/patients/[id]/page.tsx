@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import Link from "next/link";
+import { api, encounters as encApi, type EncounterRecord } from "@/lib/api";
 
 interface Patient {
   id: string;
@@ -25,8 +26,9 @@ export default function PatientDetailPage() {
   const id = params?.id as string;
 
   const [patient, setPatient] = useState<Patient | null>(null);
+  const [encounters, setEncounters] = useState<EncounterRecord[]>([]);
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<"overview" | "fhir">("overview");
+  const [tab, setTab] = useState<"overview" | "encounters" | "fhir">("overview");
 
   useEffect(() => {
     if (!id) return;
@@ -34,6 +36,11 @@ export default function PatientDetailPage() {
       .get<{ data: Patient }>(`/api/patients/${id}`)
       .then((res) => setPatient(res.data))
       .catch((err) => setError(err?.message || "Failed to load"));
+
+    encApi
+      .list(id)
+      .then((res) => setEncounters(res.data))
+      .catch(() => setEncounters([]));
   }, [id]);
 
   if (error) {
@@ -62,13 +69,21 @@ export default function PatientDetailPage() {
             {new Date(patient.dateOfBirth).toLocaleDateString()}
           </p>
         </div>
-        <button className="btn btn-secondary" onClick={() => router.back()}>
-          ← Back
-        </button>
+        <div className="flex gap-3">
+          <Link
+            href={`/encounters/new?patientId=${patient.id}`}
+            className="btn btn-primary"
+          >
+            + New Encounter
+          </Link>
+          <button className="btn btn-secondary" onClick={() => router.back()}>
+            ← Back
+          </button>
+        </div>
       </div>
 
       <div className="mb-6 flex gap-1 border-b">
-        {(["overview", "fhir"] as const).map((t) => (
+        {(["overview", "encounters", "fhir"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -78,7 +93,11 @@ export default function PatientDetailPage() {
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            {t === "overview" ? "Overview" : "FHIR Resource"}
+            {t === "overview"
+              ? "Overview"
+              : t === "encounters"
+              ? `Encounters (${encounters.length})`
+              : "FHIR Resource"}
           </button>
         ))}
       </div>
@@ -124,6 +143,61 @@ export default function PatientDetailPage() {
               </div>
             </dl>
           </div>
+        </div>
+      )}
+
+      {tab === "encounters" && (
+        <div className="card p-0">
+          {encounters.length === 0 ? (
+            <p className="muted p-6">
+              No encounters yet. Click <strong>+ New Encounter</strong> to start
+              one.
+            </p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
+                <tr>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Type</th>
+                  <th className="px-4 py-3">Reason</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {encounters.map((e) => (
+                  <tr key={e.id} className="border-t hover:bg-slate-50">
+                    <td className="px-4 py-3">
+                      {new Date(e.startedAt).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3">{e.type}</td>
+                    <td className="px-4 py-3">{e.reason ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-block rounded-full px-2 py-0.5 text-xs ${
+                          e.status === "FINISHED"
+                            ? "bg-green-100 text-green-700"
+                            : e.status === "IN_PROGRESS"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        {e.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/encounters/${e.id}`}
+                        className="text-blue-600 font-medium"
+                      >
+                        Open →
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 

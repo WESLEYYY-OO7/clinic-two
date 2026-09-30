@@ -54,6 +54,7 @@ export const api = {
   delete: <T>(path: string) => request<T>(path, { method: "DELETE" })
 };
 
+// ── Auth ──
 export const auth = {
   setToken,
   getToken,
@@ -61,7 +62,10 @@ export const auth = {
 
   login: async (tenantSlug: string, email: string, password: string) => {
     const res = await api.post<{
-      data: { token: string; user: { id: string; email: string; role: string; tenantId: string } };
+      data: {
+        token: string;
+        user: { id: string; email: string; role: string; tenantId: string };
+      };
     }>("/api/auth/login", { tenantSlug, email, password });
     setToken(res.data.token);
     if (typeof window !== "undefined") {
@@ -84,4 +88,102 @@ export const auth = {
   },
 
   isAuthenticated: () => !!getToken()
+};
+
+// ── Encounters ──
+export interface EncounterRecord {
+  id: string;
+  patientId: string;
+  providerId: string;
+  type: string;
+  status: string;
+  reason: string | null;
+  startedAt: string;
+  endedAt: string | null;
+  fhirResource: any;
+}
+
+export const encounters = {
+  list: (patientId?: string) =>
+    api.get<{ data: EncounterRecord[] }>(
+      `/api/encounters${patientId ? `?patientId=${patientId}` : ""}`
+    ),
+  get: (id: string) =>
+    api.get<{ data: EncounterRecord }>(`/api/encounters/${id}`),
+  create: (payload: {
+    patientId: string;
+    providerId: string;
+    type: string;
+    reason?: string;
+  }) => api.post<{ data: EncounterRecord }>("/api/encounters", payload),
+  finish: (id: string) =>
+    api.patch<{ data: EncounterRecord }>(`/api/encounters/${id}/finish`, {})
+};
+
+// ── Vitals ──
+export interface VitalRecord {
+  id: string;
+  encounterId: string;
+  recordedAt: string;
+  temperatureC: number | null;
+  heartRateBpm: number | null;
+  respRateBpm: number | null;
+  bpSystolic: number | null;
+  bpDiastolic: number | null;
+  spo2: number | null;
+  weightKg: number | null;
+  heightCm: number | null;
+  bmi: number | null;
+}
+
+export const vitals = {
+  list: (encounterId: string) =>
+    api.get<{ data: VitalRecord[] }>(`/api/vitals/${encounterId}`),
+  create: (payload: {
+    encounterId: string;
+    temperatureC?: number;
+    heartRateBpm?: number;
+    respRateBpm?: number;
+    bpSystolic?: number;
+    bpDiastolic?: number;
+    spo2?: number;
+    weightKg?: number;
+    heightCm?: number;
+  }) => api.post<{ data: VitalRecord }>("/api/vitals", payload)
+};
+
+// ── Notes ──
+export interface NoteRecord {
+  id: string;
+  encounterId: string;
+  authorId: string;
+  content: string;
+  version: number;
+  createdAt: string;
+}
+
+export const notes = {
+  list: (encounterId: string) =>
+    api.get<{ data: NoteRecord[] }>(`/api/notes/${encounterId}`),
+  create: (payload: { encounterId: string; content: string }) =>
+    api.post<{ data: NoteRecord }>("/api/notes", payload)
+};
+
+// ── Diagnoses ──
+export interface DiagnosisRecord {
+  id: string;
+  encounterId: string;
+  code: string;
+  display: string;
+  certainty: string | null;
+  createdAt: string;
+}
+
+export const diagnoses = {
+  create: (payload: {
+    encounterId: string;
+    code: string;
+    display: string;
+    certainty?: string;
+  }) => api.post<{ data: DiagnosisRecord }>("/api/diagnoses", payload)
 };
