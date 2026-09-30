@@ -28,5 +28,5 @@ app.use(errorHandler);
 
 const port = Number(process.env.API_PORT) || 4000;
 app.listen(port, () => {
-  console.log(`🏥 Clinic Two API listening on http://localhost:${port}`);
+  console.log(`🩺 Cura Health API listening on http://localhost:${port}`);
 });

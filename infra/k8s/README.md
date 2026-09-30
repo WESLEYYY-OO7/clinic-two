@@ -1,6 +1,8 @@
-# Clinic Two
+# Cura Health
 
-A FHIR-native, multi-tenant, cloud-and-offline hospital management platform.
+**The clinical record, cured.**
+
+A FHIR-native, multi-tenant hospital management platform built for African healthcare.
 
 ## Quick Start
 

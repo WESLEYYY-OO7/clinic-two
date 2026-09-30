@@ -24,12 +24,34 @@ export function Sidebar() {
 
   return (
     <aside className="flex h-screen w-64 flex-col border-r bg-white">
+      {/* Brand */}
       <div className="border-b p-6">
-        <h1 className="text-lg font-semibold">Clinic Two</h1>
-        <p className="muted mt-1 text-xs">{user?.email ?? "Signed out"}</p>
-        <p className="muted text-xs">{user?.role ?? ""}</p>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-600 to-accent-600 text-white font-bold text-lg shadow-sm">
+            C
+          </div>
+          <div>
+            <h1 className="text-lg font-bold leading-tight tracking-tight text-slate-900">
+              CURA
+            </h1>
+            <p className="text-[10px] font-medium leading-tight tracking-[0.2em] text-brand-600">
+              HEALTH
+            </p>
+          </div>
+        </div>
       </div>
 
+      {/* User */}
+      <div className="border-b bg-slate-50 px-6 py-4">
+        <p className="text-sm font-medium text-slate-800 truncate">
+          {user?.email ?? "Signed out"}
+        </p>
+        <p className="text-xs text-accent-600 font-medium mt-0.5">
+          {user?.role ?? ""}
+        </p>
+      </div>
+
+      {/* Nav */}
       <nav className="flex-1 space-y-1 p-3">
         {NAV.map((item) => {
           const active = pathname?.startsWith(item.href);
@@ -37,10 +59,10 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`block rounded-md px-3 py-2 text-sm ${
+              className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
                 active
-                  ? "bg-blue-50 font-medium text-blue-700"
-                  : "text-slate-700 hover:bg-slate-50"
+                  ? "bg-brand-50 font-semibold text-brand-700"
+                  : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
               {item.label}
@@ -49,10 +71,11 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* Sign out */}
       <div className="border-t p-3">
         <button
           onClick={handleLogout}
-          className="btn btn-secondary w-full justify-center text-sm"
+          className="w-full rounded-lg border border-accent-200 bg-white px-3 py-2 text-sm font-medium text-accent-700 transition-colors hover:bg-accent-50"
         >
           Sign out
         </button>
