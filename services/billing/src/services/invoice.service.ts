@@ -1,7 +1,10 @@
 import { prisma } from "@clinic-two/db-client";
 import type { InvoiceInputType } from "../validators/invoice.schema";
 
-export const createInvoice = async (tenantId: string, input: InvoiceInputType) => {
+export const createInvoice = async (
+  tenantId: string,
+  input: InvoiceInputType
+) => {
   const subtotal = input.lineItems.reduce(
     (sum, item) => sum + item.quantity * item.unitPrice,
     0
@@ -32,14 +35,52 @@ export const createInvoice = async (tenantId: string, input: InvoiceInputType) =
         }))
       }
     },
-    include: { lineItems: true }
+    include: { lineItems: true, payments: true }
   });
 };
 
-export const listInvoices = async (tenantId: string, patientId?: string) => {
+export const listInvoices = async (
+  tenantId: string,
+  patientId?: string
+) => {
   return prisma.invoice.findMany({
     where: { tenantId, ...(patientId ? { patientId } : {}) },
-    include: { lineItems: true, payments: true },
+    include: {
+      lineItems: true,
+      payments: true,
+      patient: {
+        select: {
+          id: true,
+          mrn: true,
+          firstName: true,
+          lastName: true
+        }
+      }
+    },
     orderBy: { createdAt: "desc" }
   });
+};
+
+export const getInvoice = async (tenantId: string, id: string) => {
+  const invoice = await prisma.invoice.findFirst({
+    where: { id, tenantId },
+    include: {
+      lineItems: true,
+      payments: true
+    }
+  });
+
+  if (!invoice) return null;
+
+  const patient = await prisma.patient.findFirst({
+    where: { id: invoice.patientId, tenantId },
+    select: {
+      id: true,
+      mrn: true,
+      firstName: true,
+      lastName: true
+    }
+  });
+
+  return { ...invoice, patient };
 };

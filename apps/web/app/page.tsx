@@ -16,7 +16,7 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <p className="muted">Loading Clinic Two…</p>
+      <p className="muted">Loading Cura Health…</p>
     </div>
   );
 }

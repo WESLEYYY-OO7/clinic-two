@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { auth } from "@/lib/api";
 
 const NAV = [
@@ -15,7 +16,19 @@ const NAV = [
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const user = auth.getUser();
+  const [user, setUser] = useState<{
+    email: string;
+    role: string;
+  } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const u = auth.getUser();
+    if (u) {
+      setUser({ email: u.email, role: u.role });
+    }
+  }, []);
 
   const handleLogout = () => {
     auth.logout();
@@ -27,7 +40,7 @@ export function Sidebar() {
       {/* Brand */}
       <div className="border-b p-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-600 to-accent-600 text-white font-bold text-lg shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-600 to-accent-600 text-lg font-bold text-white shadow-sm">
             C
           </div>
           <div>
@@ -43,12 +56,21 @@ export function Sidebar() {
 
       {/* User */}
       <div className="border-b bg-slate-50 px-6 py-4">
-        <p className="text-sm font-medium text-slate-800 truncate">
-          {user?.email ?? "Signed out"}
-        </p>
-        <p className="text-xs text-accent-600 font-medium mt-0.5">
-          {user?.role ?? ""}
-        </p>
+        {mounted && user ? (
+          <>
+            <p className="text-sm font-medium text-slate-800 truncate">
+              {user.email}
+            </p>
+            <p className="text-xs text-accent-600 font-medium mt-0.5">
+              {user.role}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm font-medium text-slate-400">—</p>
+            <p className="text-xs text-slate-400 mt-0.5">Loading…</p>
+          </>
+        )}
       </div>
 
       {/* Nav */}
