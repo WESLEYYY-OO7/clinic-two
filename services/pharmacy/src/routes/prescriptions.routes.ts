@@ -89,7 +89,7 @@ router.post("/", async (req, res) => {
       gender: patient.gender,
       isPregnant: false // TODO: add pregnancy flag to Patient model later
     },
-    medications: [drug.name],
+   medications: [drug.name, drug.genericName ?? ""].filter(Boolean) as string[],
     currentMeds,
     diagnoses: []
   });
@@ -267,7 +267,7 @@ router.post("/preview", async (req, res) => {
       gender: patient.gender,
       isPregnant: false
     },
-    medications: [drug.name],
+  medications: [drug.name, drug.genericName ?? ""].filter(Boolean) as string[],
     currentMeds: activePrescriptions.map((p) => p.drug.name),
     diagnoses: []
   });
