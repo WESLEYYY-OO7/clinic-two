@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
-import { auditFromRequest } from "@clinic-two/audit";
-import { can } from "@clinic-two/auth";
-import { prisma } from "@clinic-two/db-client";
+import { auditFromRequest } from "@cura/audit";
+import { can } from "@cura/auth";
+import { prisma } from "@cura/db-client";
 import { HygeiaAdapter } from "../adapters/HygeiaAdapter";
 import { RelianceHmoAdapter } from "../adapters/RelianceHmoAdapter";
 import type { HmoAdapter } from "../adapters/HmoAdapter";

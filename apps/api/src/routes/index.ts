@@ -6,13 +6,13 @@ import {
   notesRouter,
   diagnosesRouter,
   appointmentsRouter
-} from "@clinic-two/emr";
-import { invoicesRouter, paymentsRouter } from "@clinic-two/billing";
-import { drugsRouter, prescriptionsRouter } from "@clinic-two/pharmacy";
-import { labOrdersRouter } from "@clinic-two/lab";
-import { employeesRouter } from "@clinic-two/hr";
-import { claimsRouter } from "@clinic-two/hmo";
-import { evaluateRouter } from "@clinic-two/cds";
+} from "@cura/emr";
+import { invoicesRouter, paymentsRouter } from "@cura/billing";
+import { drugsRouter, prescriptionsRouter } from "@cura/pharmacy";
+import { labOrdersRouter } from "@cura/lab";
+import { employeesRouter } from "@cura/hr";
+import { claimsRouter } from "@cura/hmo";
+import { evaluateRouter } from "@cura/cds";
 
 const router = Router();
 

@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { verifyToken, type JwtPayload } from "@clinic-two/auth";
+import { verifyToken, type JwtPayload } from "@cura/auth";
 
 declare global {
   namespace Express {

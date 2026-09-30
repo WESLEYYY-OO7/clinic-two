@@ -1,12 +1,12 @@
 {
     "dependencies":  {
-                         "@clinic-two/audit":  "workspace:*",
-                         "@clinic-two/auth":  "workspace:*",
-                         "@clinic-two/db-client":  "workspace:*",
+                         "@cura/audit":  "workspace:*",
+                         "@cura/auth":  "workspace:*",
+                         "@cura/db-client":  "workspace:*",
                          "express":  "^4.19.2",
                          "zod":  "^3.23.8"
                      },
-    "name":  "@clinic-two/lab",
+    "name":  "@cura/lab",
     "devDependencies":  {
                             "@types/express":  "^4.17.21",
                             "@types/node":  "^20.14.0",

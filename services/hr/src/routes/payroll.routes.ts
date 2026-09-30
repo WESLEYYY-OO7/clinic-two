@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
-import { can } from "@clinic-two/auth";
-import { prisma } from "@clinic-two/db-client";
+import { can } from "@cura/auth";
+import { prisma } from "@cura/db-client";
 
 const router = Router();
 

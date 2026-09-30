@@ -1,5 +1,5 @@
-import type { Vital as DbVital } from "@clinic-two/db-client";
-import { LOINC } from "@clinic-two/config";
+import type { Vital as DbVital } from "@cura/db-client";
+import { LOINC } from "@cura/config";
 
 export interface FhirObservation {
   resourceType: "Observation";

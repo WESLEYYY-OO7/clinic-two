@@ -1,5 +1,5 @@
-import { prisma } from "@clinic-two/db-client";
-import { toFhirPatient } from "@clinic-two/fhir-models";
+import { prisma } from "@cura/db-client";
+import { toFhirPatient } from "@cura/fhir-models";
 import type { PatientInputType } from "../validators/patient.schema";
 
 export const createPatient = async (tenantId: string, input: PatientInputType) => {

@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { auditFromRequest } from "@clinic-two/audit";
-import { can } from "@clinic-two/auth";
-import { prisma } from "@clinic-two/db-client";
+import { auditFromRequest } from "@cura/audit";
+import { can } from "@cura/auth";
+import { prisma } from "@cura/db-client";
 import { InvoiceInput } from "../validators/invoice.schema";
 import {
   createInvoice,

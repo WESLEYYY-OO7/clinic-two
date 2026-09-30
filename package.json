@@ -8,10 +8,10 @@
                     "build":  "turbo run build",
                     "lint":  "turbo run lint",
                     "test":  "turbo run test",
-                    "db:generate":  "pnpm --filter @clinic-two/db-client exec prisma generate",
-                    "db:migrate":  "pnpm --filter @clinic-two/db-client exec prisma migrate dev",
-                    "db:seed":  "pnpm --filter @clinic-two/db-client exec tsx prisma/seed.ts",
-                    "db:studio":  "pnpm --filter @clinic-two/db-client exec prisma studio"
+                    "db:generate":  "pnpm --filter @cura/db-client exec prisma generate",
+                    "db:migrate":  "pnpm --filter @cura/db-client exec prisma migrate dev",
+                    "db:seed":  "pnpm --filter @cura/db-client exec tsx prisma/seed.ts",
+                    "db:studio":  "pnpm --filter @cura/db-client exec prisma studio"
                 },
     "devDependencies":  {
                             "turbo":  "^2.0.0",

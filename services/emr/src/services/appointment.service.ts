@@ -1,4 +1,4 @@
-import { prisma } from "@clinic-two/db-client";
+import { prisma } from "@cura/db-client";
 import type { AppointmentInputType } from "../validators/appointment.schema";
 
 export const createAppointment = async (

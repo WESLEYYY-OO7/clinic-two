@@ -1,5 +1,5 @@
 {
-  "name": "@clinic-two/db-client",
+  "name": "@cura/db-client",
   "version": "0.1.0",
   "private": true,
   "main": "./src/index.ts",

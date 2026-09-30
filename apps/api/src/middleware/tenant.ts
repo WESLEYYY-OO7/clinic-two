@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { prisma } from "@clinic-two/db-client";
+import { prisma } from "@cura/db-client";
 
 export const tenantMiddleware = async (
   req: Request,

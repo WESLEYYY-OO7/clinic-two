@@ -1,4 +1,4 @@
-import { prisma } from "@clinic-two/db-client";
+import { prisma } from "@cura/db-client";
 import type { PaymentInputType } from "../validators/invoice.schema";
 import { recomputeInvoiceBalance } from "./ledger.service";
 

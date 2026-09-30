@@ -1,5 +1,5 @@
 {
-  "name": "@clinic-two/fhir-models",
+  "name": "@cura/fhir-models",
   "version": "0.1.0",
   "private": true,
   "main": "./src/index.ts",
@@ -9,8 +9,8 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@clinic-two/config": "workspace:*",
-    "@clinic-two/db-client": "workspace:*"
+    "@cura/config": "workspace:*",
+    "@cura/db-client": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.5.0"

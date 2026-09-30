@@ -1,4 +1,4 @@
-import type { Encounter as DbEncounter } from "@clinic-two/db-client";
+import type { Encounter as DbEncounter } from "@cura/db-client";
 
 export interface FhirEncounter {
   resourceType: "Encounter";

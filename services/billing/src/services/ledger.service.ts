@@ -1,4 +1,4 @@
-import { prisma } from "@clinic-two/db-client";
+import { prisma } from "@cura/db-client";
 
 /**
  * Recompute an invoice's balance from its payments.

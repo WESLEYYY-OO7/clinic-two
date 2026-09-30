@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { z } from "zod";
-import { prisma } from "@clinic-two/db-client";
+import { prisma } from "@cura/db-client";
 import {
   signToken,
   verifyPassword,
   hashPassword,
   type Role
-} from "@clinic-two/auth";
-import { auditFromRequest } from "@clinic-two/audit";
+} from "@cura/auth";
+import { auditFromRequest } from "@cura/audit";
 
 const router = Router();
 

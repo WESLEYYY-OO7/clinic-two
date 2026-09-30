@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { auditFromRequest } from "@clinic-two/audit";
-import { can } from "@clinic-two/auth";
+import { auditFromRequest } from "@cura/audit";
+import { can } from "@cura/auth";
 import { PaymentInput } from "../validators/invoice.schema";
 import { recordPayment } from "../services/payment.service";
 

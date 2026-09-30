@@ -1,5 +1,5 @@
 {
-  "name": "@clinic-two/audit",
+  "name": "@cura/audit",
   "version": "0.1.0",
   "private": true,
   "main": "./src/index.ts",
@@ -9,7 +9,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@clinic-two/db-client": "workspace:*"
+    "@cura/db-client": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

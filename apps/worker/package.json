@@ -10,7 +10,7 @@
                          "dotenv":  "^16.4.5",
                          "ioredis":  "^5.4.1"
                      },
-    "name":  "@clinic-two/worker",
+    "name":  "@cura/worker",
     "private":  true,
     "scripts":  {
                     "dev":  "tsx watch src/index.ts",

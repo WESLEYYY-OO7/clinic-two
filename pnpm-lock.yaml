@@ -122,7 +122,7 @@ importers:
 
   packages/audit:
     dependencies:
-      '@clinic-two/db-client':
+      '@cura/db-client':
         specifier: workspace:*
         version: link:../db-client
     devDependencies:
@@ -188,10 +188,10 @@ importers:
 
   packages/fhir-models:
     dependencies:
-      '@clinic-two/config':
+      '@cura/config':
         specifier: workspace:*
         version: link:../config
-      '@clinic-two/db-client':
+      '@cura/db-client':
         specifier: workspace:*
         version: link:../db-client
     devDependencies:
@@ -207,13 +207,13 @@ importers:
 
   services/billing:
     dependencies:
-      '@clinic-two/audit':
+      '@cura/audit':
         specifier: workspace:*
         version: link:../../packages/audit
-      '@clinic-two/auth':
+      '@cura/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@clinic-two/db-client':
+      '@cura/db-client':
         specifier: workspace:*
         version: link:../../packages/db-client
       express:
@@ -254,16 +254,16 @@ importers:
 
   services/emr:
     dependencies:
-      '@clinic-two/audit':
+      '@cura/audit':
         specifier: workspace:*
         version: link:../../packages/audit
-      '@clinic-two/auth':
+      '@cura/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@clinic-two/db-client':
+      '@cura/db-client':
         specifier: workspace:*
         version: link:../../packages/db-client
-      '@clinic-two/fhir-models':
+      '@cura/fhir-models':
         specifier: workspace:*
         version: link:../../packages/fhir-models
       express:
@@ -285,13 +285,13 @@ importers:
 
   services/hmo:
     dependencies:
-      '@clinic-two/audit':
+      '@cura/audit':
         specifier: workspace:*
         version: link:../../packages/audit
-      '@clinic-two/auth':
+      '@cura/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@clinic-two/db-client':
+      '@cura/db-client':
         specifier: workspace:*
         version: link:../../packages/db-client
       express:
@@ -313,13 +313,13 @@ importers:
 
   services/hr:
     dependencies:
-      '@clinic-two/audit':
+      '@cura/audit':
         specifier: workspace:*
         version: link:../../packages/audit
-      '@clinic-two/auth':
+      '@cura/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@clinic-two/db-client':
+      '@cura/db-client':
         specifier: workspace:*
         version: link:../../packages/db-client
       express:
@@ -341,13 +341,13 @@ importers:
 
   services/lab:
     dependencies:
-      '@clinic-two/audit':
+      '@cura/audit':
         specifier: workspace:*
         version: link:../../packages/audit
-      '@clinic-two/auth':
+      '@cura/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@clinic-two/db-client':
+      '@cura/db-client':
         specifier: workspace:*
         version: link:../../packages/db-client
       express:
@@ -369,13 +369,13 @@ importers:
 
   services/pharmacy:
     dependencies:
-      '@clinic-two/audit':
+      '@cura/audit':
         specifier: workspace:*
         version: link:../../packages/audit
-      '@clinic-two/auth':
+      '@cura/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@clinic-two/db-client':
+      '@cura/db-client':
         specifier: workspace:*
         version: link:../../packages/db-client
       express:
@@ -1179,8 +1179,8 @@ packages:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
 
-  browserslist@4.29.2:
-    resolution: {integrity: sha512-/u9r8k8ue4ZhHCw9ovDtltpWdXeXzjhdxCGj6vm1RGLPXb8lu33EMdoCHF5Sx8oYBS+Q/FYYNmAqlHncxR3RmA==}
+  browserslist@4.29.3:
+    resolution: {integrity: sha512-1R4kiYKXGViqEN0CnoDrXc1StD9niAwu+j2dukWzrD4bJgsD4lDmEp0CRbc6E/vYJIfTHwPmwyaKtVSudICdPA==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
 
@@ -1224,8 +1224,8 @@ packages:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
 
-  caniuse-lite@1.0.30001813:
-    resolution: {integrity: sha512-zfjJo4rM0+fUomGDBW/xcDjhIwz/210DGvip2MAMDZ8KHcRPnOHmEgHPZP0UHlZoxr8fYKVJOqcORhYQcG4FKQ==}
+  caniuse-lite@1.0.30001814:
+    resolution: {integrity: sha512-/Uaf1lAzr59XcMpW0o96WoEfr+VXK2OX4U9AgFoiSHsVJ4HppnIFUjtYzsyDH2+tgANaQb2/oxYGwCPapN1FpA==}
 
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
@@ -1402,8 +1402,8 @@ packages:
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  electron-to-chromium@1.5.440:
-    resolution: {integrity: sha512-SghDzqdJokdz8zP8YNlvS74+CwLRoUPDGvP/gFA+HrKVw+pOshUAgx8pXR37xl/u16zGae746rFNWvZ/22kU2Q==}
+  electron-to-chromium@1.5.442:
+    resolution: {integrity: sha512-najZYZ3+ZpjN1z3VOsrBiv5ej18vQgfV2lvEmxWzfmKrk4bdm3Owseyud4yGU6DfFn9pyunoAHDDyM4KmP78Ew==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -3424,8 +3424,8 @@ snapshots:
 
   autoprefixer@10.6.1(postcss@8.5.28):
     dependencies:
-      browserslist: 4.29.2
-      caniuse-lite: 1.0.30001813
+      browserslist: 4.29.3
+      caniuse-lite: 1.0.30001814
       fraction.js: 5.3.4
       picocolors: 1.1.1
       postcss: 8.5.28
@@ -3493,13 +3493,13 @@ snapshots:
     dependencies:
       fill-range: 7.1.1
 
-  browserslist@4.29.2:
+  browserslist@4.29.3:
     dependencies:
       baseline-browser-mapping: 2.11.26
-      caniuse-lite: 1.0.30001813
-      electron-to-chromium: 1.5.440
+      caniuse-lite: 1.0.30001814
+      electron-to-chromium: 1.5.442
       node-releases: 2.0.57
-      update-browserslist-db: 1.3.3(browserslist@4.29.2)
+      update-browserslist-db: 1.3.3(browserslist@4.29.3)
 
   buffer-equal-constant-time@1.0.1: {}
 
@@ -3541,7 +3541,7 @@ snapshots:
 
   camelcase-css@2.0.1: {}
 
-  caniuse-lite@1.0.30001813: {}
+  caniuse-lite@1.0.30001814: {}
 
   chalk@4.1.2:
     dependencies:
@@ -3698,7 +3698,7 @@ snapshots:
 
   ee-first@1.1.1: {}
 
-  electron-to-chromium@1.5.440: {}
+  electron-to-chromium@1.5.442: {}
 
   emoji-regex@8.0.0: {}
 
@@ -4669,7 +4669,7 @@ snapshots:
       '@next/env': 14.2.5
       '@swc/helpers': 0.5.5
       busboy: 1.6.0
-      caniuse-lite: 1.0.30001813
+      caniuse-lite: 1.0.30001814
       graceful-fs: 4.2.11
       postcss: 8.4.31
       react: 18.3.1
@@ -5393,9 +5393,9 @@ snapshots:
       '@unrs/resolver-binding-win32-ia32-msvc': 1.12.2
       '@unrs/resolver-binding-win32-x64-msvc': 1.12.2
 
-  update-browserslist-db@1.3.3(browserslist@4.29.2):
+  update-browserslist-db@1.3.3(browserslist@4.29.3):
     dependencies:
-      browserslist: 4.29.2
+      browserslist: 4.29.3
       escalade: 3.2.0
       picocolors: 1.1.1
 

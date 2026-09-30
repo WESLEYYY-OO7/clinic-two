@@ -1,5 +1,5 @@
 {
-  "name": "@clinic-two/emr",
+  "name": "@cura/emr",
   "version": "0.1.0",
   "private": true,
   "main": "./src/index.ts",
@@ -9,10 +9,10 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@clinic-two/audit": "workspace:*",
-    "@clinic-two/auth": "workspace:*",
-    "@clinic-two/db-client": "workspace:*",
-    "@clinic-two/fhir-models": "workspace:*",
+    "@cura/audit": "workspace:*",
+    "@cura/auth": "workspace:*",
+    "@cura/db-client": "workspace:*",
+    "@cura/fhir-models": "workspace:*",
     "express": "^4.19.2",
     "zod": "^3.23.8"
   },

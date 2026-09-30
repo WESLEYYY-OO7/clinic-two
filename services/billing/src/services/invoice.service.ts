@@ -1,4 +1,4 @@
-import { prisma } from "@clinic-two/db-client";
+import { prisma } from "@cura/db-client";
 import type { InvoiceInputType } from "../validators/invoice.schema";
 
 export const createInvoice = async (

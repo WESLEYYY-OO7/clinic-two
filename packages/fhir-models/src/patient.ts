@@ -1,4 +1,4 @@
-import type { Patient as DbPatient } from "@clinic-two/db-client";
+import type { Patient as DbPatient } from "@cura/db-client";
 
 export interface FhirPatient {
   resourceType: "Patient";

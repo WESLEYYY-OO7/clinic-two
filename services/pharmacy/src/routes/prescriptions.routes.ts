@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { z } from "zod";
-import { auditFromRequest } from "@clinic-two/audit";
-import { can } from "@clinic-two/auth";
-import { prisma } from "@clinic-two/db-client";
-import { evaluate, hasBlockingAlert, type CdsAlert } from "@clinic-two/cds";
+import { auditFromRequest } from "@cura/audit";
+import { can } from "@cura/auth";
+import { prisma } from "@cura/db-client";
+import { evaluate, hasBlockingAlert, type CdsAlert } from "@cura/cds";
 
 const router = Router();
 
