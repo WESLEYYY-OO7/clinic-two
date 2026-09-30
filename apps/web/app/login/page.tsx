@@ -5,9 +5,9 @@ import { auth } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [tenantSlug, setTenantSlug] = useState("demo-clinic");
-  const [email, setEmail] = useState("admin@clinic-two.local");
-  const [password, setPassword] = useState("ChangeMe123!");
+ const [tenantSlug, setTenantSlug] = useState("ivie-specialist");
+const [email, setEmail] = useState("adaeze@ivie-specialist.ng");
+const [password, setPassword] = useState("Lagos2026!");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 

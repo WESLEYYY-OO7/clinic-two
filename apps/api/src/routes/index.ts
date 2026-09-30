@@ -26,7 +26,7 @@ router.use("/appointments", asyncHandler(appointmentsRouter as any));
 router.use("/invoices", asyncHandler(invoicesRouter as any));
 router.use("/payments", asyncHandler(paymentsRouter as any));
 router.use("/drugs", asyncHandler(drugsRouter as any));
-router.use("/prescriptions", asyncHandler(prescriptionsRouter as any));
+router.use("/prescriptions", prescriptionsRouter);
 router.use("/lab-orders", asyncHandler(labOrdersRouter as any));
 router.use("/employees", asyncHandler(employeesRouter as any));
 router.use("/claims", asyncHandler(claimsRouter as any));

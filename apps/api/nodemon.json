@@ -1,7 +1,11 @@
 {
-  "watch": ["src", "../../packages", "../../services"],
+  "watch": [
+    "src",
+    "../../services",
+    "../../packages"
+  ],
   "ext": "ts",
-  "ignore": ["**/*.test.ts", "node_modules"],
+  "ignore": ["**/*.test.ts", "**/node_modules/**", "**/dist/**"],
   "exec": "tsx src/index.ts",
   "restartable": "rs",
   "signal": "SIGTERM"
