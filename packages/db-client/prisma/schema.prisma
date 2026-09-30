@@ -14,17 +14,18 @@ model Tenant {
   plan      Plan     @default(STARTER)
   createdAt DateTime @default(now())
 
-  users        User[]
-  patients     Patient[]
-  encounters   Encounter[]
-  invoices     Invoice[]
-  appointments Appointment[]
-  auditLogs    AuditLog[]
-  drugs        Drug[]
+  users         User[]
+  patients      Patient[]
+  encounters    Encounter[]
+  invoices      Invoice[]
+  appointments  Appointment[]
+  auditLogs     AuditLog[]
+  drugs         Drug[]
   prescriptions Prescription[]
-  labOrders    LabOrder[]
-  employees    Employee[]
-  claims       Claim[]
+  labOrders     LabOrder[]
+  labTests      LabTest[]
+  employees     Employee[]
+  claims        Claim[]
 }
 
 enum Plan {
@@ -336,21 +337,43 @@ enum PrescriptionStatus {
   CANCELLED
 }
 
+model LabTest {
+  id             String   @id @default(uuid())
+  tenantId       String
+  code           String
+  name           String
+  specimen       String
+  unit           String
+  referenceRange String
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, code])
+  @@index([tenantId, isActive])
+}
+
 model LabOrder {
-  id          String         @id @default(uuid())
-  tenantId    String
-  encounterId String
-  testCode    String
-  testName    String
-  status      LabOrderStatus @default(ORDERED)
-  result      String?
-  resultedAt  DateTime?
-  createdAt   DateTime       @default(now())
+  id           String         @id @default(uuid())
+  tenantId     String
+  encounterId  String
+  patientId    String
+  testId       String
+  status       LabOrderStatus @default(ORDERED)
+  resultValue  String?
+  resultFlag   String?
+  resultedAt   DateTime?
+  resultedById String?
+  notes        String?
+  fhirResource Json?
+  createdAt    DateTime       @default(now())
 
   tenant    Tenant    @relation(fields: [tenantId], references: [id])
   encounter Encounter @relation(fields: [encounterId], references: [id])
 
   @@index([tenantId, status])
+  @@index([tenantId, patientId])
 }
 
 enum LabOrderStatus {
