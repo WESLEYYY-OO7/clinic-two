@@ -1,10 +1,3 @@
-// ═══════════════════════════════════════════════════════════════
-//  CURA HEALTH — API CLIENT
-//  ⚠️  NEVER REPLACE THIS FILE — ONLY APPEND
-//  Every page in the app imports from here. If you replace it,
-//  you break the entire UI (sidebar, login, patients, everything).
-//  To add a new module, APPEND a new block at the bottom.
-// ═══════════════════════════════════════════════════════════════
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export interface ApiError {
@@ -306,7 +299,8 @@ export const invoices = {
     api.get<{ data: InvoiceRecord[] }>(
       `/api/invoices${patientId ? `?patientId=${patientId}` : ""}`
     ),
-  get: (id: string) => api.get<{ data: InvoiceRecord }>(`/api/invoices/${id}`),
+  get: (id: string) =>
+    api.get<{ data: InvoiceRecord }>(`/api/invoices/${id}`),
   create: (payload: {
     patientId: string;
     tax?: number;
@@ -326,6 +320,64 @@ export const payments = {
   }) =>
     api.post<{ data: { payment: PaymentRecord; invoice: InvoiceRecord } }>(
       "/api/payments",
+      payload
+    )
+};
+
+// ── Lab ──
+export interface LabTestRecord {
+  id: string;
+  code: string;
+  name: string;
+  specimen: string;
+  unit: string;
+  referenceRange: string;
+  isActive: boolean;
+}
+
+export interface LabOrderRecord {
+  id: string;
+  encounterId: string;
+  patientId: string;
+  testId: string;
+  status: string;
+  resultValue: string | null;
+  resultFlag: string | null;
+  resultedAt: string | null;
+  resultedById: string | null;
+  notes: string | null;
+  fhirResource: any;
+  createdAt: string;
+  test: LabTestRecord | null;
+}
+
+export const lab = {
+  tests: () =>
+    api.get<{ data: LabTestRecord[] }>("/api/lab-orders/tests"),
+
+  list: (filter?: { encounterId?: string; patientId?: string }) => {
+    const q = new URLSearchParams();
+    if (filter?.encounterId) q.set("encounterId", filter.encounterId);
+    if (filter?.patientId) q.set("patientId", filter.patientId);
+    const qs = q.toString();
+    return api.get<{ data: LabOrderRecord[] }>(
+      `/api/lab-orders${qs ? `?${qs}` : ""}`
+    );
+  },
+
+  get: (id: string) =>
+    api.get<{ data: LabOrderRecord }>(`/api/lab-orders/${id}`),
+
+  create: (payload: {
+    encounterId: string;
+    patientId: string;
+    testId: string;
+    notes?: string;
+  }) => api.post<{ data: LabOrderRecord }>("/api/lab-orders", payload),
+
+  result: (id: string, payload: { resultValue: string; resultFlag?: string }) =>
+    api.patch<{ data: LabOrderRecord }>(
+      `/api/lab-orders/${id}/result`,
       payload
     )
 };

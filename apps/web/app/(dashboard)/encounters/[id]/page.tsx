@@ -13,6 +13,7 @@ import {
   type NoteRecord
 } from "@/lib/api";
 import { PrescriptionsTab } from "@/components/PrescriptionsTab";
+import { LabTab } from "@/components/LabTab";
 
 interface Patient {
   id: string;
@@ -24,7 +25,7 @@ interface Patient {
   allergies: string[];
 }
 
-type Tab = "vitals" | "notes" | "diagnoses" | "prescriptions" | "fhir";
+type Tab = "vitals" | "notes" | "diagnoses" | "prescriptions" | "lab" | "fhir";
 
 export default function EncounterDetailPage() {
   const params = useParams();
@@ -172,8 +173,7 @@ export default function EncounterDetailPage() {
   if (!encounter || !patient) return <p className="muted">Loading…</p>;
 
   const isFinished = encounter.status === "FINISHED";
-
-  const tabs: Tab[] = ["vitals", "notes", "diagnoses", "prescriptions", "fhir"];
+  const tabs: Tab[] = ["vitals", "notes", "diagnoses", "prescriptions", "lab", "fhir"];
 
   return (
     <div>
@@ -187,16 +187,12 @@ export default function EncounterDetailPage() {
               {patient.mrn}
             </Link>
             <span
-              className={`inline-block rounded-full px-2 py-0.5 text-xs ${
-                isFinished
-                  ? "bg-green-100 text-green-700"
-                  : "bg-blue-100 text-blue-700"
-              }`}
+              className={`badge ${isFinished ? "badge-green" : "badge-blue"}`}
             >
               {encounter.status}
             </span>
           </div>
-          <h1 className="mt-2 text-2xl font-semibold">
+          <h1 className="mt-2 text-2xl font-semibold text-slate-900">
             {patient.firstName} {patient.lastName}
           </h1>
           <p className="muted mt-1">
@@ -220,7 +216,7 @@ export default function EncounterDetailPage() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+        <div className="mb-4 rounded-lg border border-brand-200 bg-brand-50 p-3 text-sm text-brand-800">
           {error}
         </div>
       )}
@@ -230,9 +226,9 @@ export default function EncounterDetailPage() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium capitalize ${
+            className={`px-4 py-2 text-sm font-medium capitalize transition-colors ${
               tab === t
-                ? "border-b-2 border-blue-600 text-blue-600"
+                ? "border-b-2 border-brand-600 text-brand-600"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -245,108 +241,47 @@ export default function EncounterDetailPage() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {!isFinished && (
             <form onSubmit={submitVitals} className="card">
-              <h2 className="text-lg font-semibold">Record Vitals</h2>
+              <h2 className="text-lg font-semibold text-slate-900">Record Vitals</h2>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div>
                   <label className="label">Temp (°C)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="input"
-                    value={vitalForm.temperatureC}
-                    onChange={(e) =>
-                      setVitalForm({ ...vitalForm, temperatureC: e.target.value })
-                    }
-                  />
+                  <input type="number" step="0.1" className="input" value={vitalForm.temperatureC} onChange={(e) => setVitalForm({ ...vitalForm, temperatureC: e.target.value })} />
                 </div>
                 <div>
                   <label className="label">Heart rate (bpm)</label>
-                  <input
-                    type="number"
-                    className="input"
-                    value={vitalForm.heartRateBpm}
-                    onChange={(e) =>
-                      setVitalForm({ ...vitalForm, heartRateBpm: e.target.value })
-                    }
-                  />
+                  <input type="number" className="input" value={vitalForm.heartRateBpm} onChange={(e) => setVitalForm({ ...vitalForm, heartRateBpm: e.target.value })} />
                 </div>
                 <div>
                   <label className="label">Resp rate (/min)</label>
-                  <input
-                    type="number"
-                    className="input"
-                    value={vitalForm.respRateBpm}
-                    onChange={(e) =>
-                      setVitalForm({ ...vitalForm, respRateBpm: e.target.value })
-                    }
-                  />
+                  <input type="number" className="input" value={vitalForm.respRateBpm} onChange={(e) => setVitalForm({ ...vitalForm, respRateBpm: e.target.value })} />
                 </div>
                 <div>
                   <label className="label">SpO₂ (%)</label>
-                  <input
-                    type="number"
-                    className="input"
-                    value={vitalForm.spo2}
-                    onChange={(e) =>
-                      setVitalForm({ ...vitalForm, spo2: e.target.value })
-                    }
-                  />
+                  <input type="number" className="input" value={vitalForm.spo2} onChange={(e) => setVitalForm({ ...vitalForm, spo2: e.target.value })} />
                 </div>
                 <div>
                   <label className="label">BP systolic</label>
-                  <input
-                    type="number"
-                    className="input"
-                    value={vitalForm.bpSystolic}
-                    onChange={(e) =>
-                      setVitalForm({ ...vitalForm, bpSystolic: e.target.value })
-                    }
-                  />
+                  <input type="number" className="input" value={vitalForm.bpSystolic} onChange={(e) => setVitalForm({ ...vitalForm, bpSystolic: e.target.value })} />
                 </div>
                 <div>
                   <label className="label">BP diastolic</label>
-                  <input
-                    type="number"
-                    className="input"
-                    value={vitalForm.bpDiastolic}
-                    onChange={(e) =>
-                      setVitalForm({ ...vitalForm, bpDiastolic: e.target.value })
-                    }
-                  />
+                  <input type="number" className="input" value={vitalForm.bpDiastolic} onChange={(e) => setVitalForm({ ...vitalForm, bpDiastolic: e.target.value })} />
                 </div>
                 <div>
                   <label className="label">Weight (kg)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="input"
-                    value={vitalForm.weightKg}
-                    onChange={(e) =>
-                      setVitalForm({ ...vitalForm, weightKg: e.target.value })
-                    }
-                  />
+                  <input type="number" step="0.1" className="input" value={vitalForm.weightKg} onChange={(e) => setVitalForm({ ...vitalForm, weightKg: e.target.value })} />
                 </div>
                 <div>
                   <label className="label">Height (cm)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="input"
-                    value={vitalForm.heightCm}
-                    onChange={(e) =>
-                      setVitalForm({ ...vitalForm, heightCm: e.target.value })
-                    }
-                  />
+                  <input type="number" step="0.1" className="input" value={vitalForm.heightCm} onChange={(e) => setVitalForm({ ...vitalForm, heightCm: e.target.value })} />
                 </div>
               </div>
-              <button type="submit" className="btn btn-primary mt-4">
-                Save vitals
-              </button>
+              <button type="submit" className="btn btn-primary mt-4">Save vitals</button>
             </form>
           )}
 
           <div className="card">
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-lg font-semibold text-slate-900">
               Vital History ({vitals.length})
             </h2>
             {vitals.length === 0 ? (
@@ -354,23 +289,17 @@ export default function EncounterDetailPage() {
             ) : (
               <div className="mt-4 space-y-3">
                 {vitals.map((v) => (
-                  <div key={v.id} className="border-l-2 border-blue-500 pl-3">
-                    <p className="muted text-xs">
-                      {new Date(v.recordedAt).toLocaleString()}
-                    </p>
+                  <div key={v.id} className="border-l-2 border-brand-500 pl-3">
+                    <p className="muted text-xs">{new Date(v.recordedAt).toLocaleString()}</p>
                     <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                       {v.temperatureC != null && <span>🌡️ {v.temperatureC}°C</span>}
                       {v.heartRateBpm != null && <span>❤️ {v.heartRateBpm} bpm</span>}
                       {v.respRateBpm != null && <span>🫁 {v.respRateBpm}/min</span>}
                       {v.spo2 != null && <span>💧 SpO₂ {v.spo2}%</span>}
-                      {v.bpSystolic != null && v.bpDiastolic != null && (
-                        <span>🩸 {v.bpSystolic}/{v.bpDiastolic}</span>
-                      )}
+                      {v.bpSystolic != null && v.bpDiastolic != null && <span>🩸 {v.bpSystolic}/{v.bpDiastolic}</span>}
                       {v.weightKg != null && <span>⚖️ {v.weightKg} kg</span>}
                       {v.heightCm != null && <span>📏 {v.heightCm} cm</span>}
-                      {v.bmi != null && (
-                        <span className="font-medium">BMI {v.bmi.toFixed(1)}</span>
-                      )}
+                      {v.bmi != null && <span className="font-medium">BMI {v.bmi.toFixed(1)}</span>}
                     </div>
                   </div>
                 ))}
@@ -384,7 +313,7 @@ export default function EncounterDetailPage() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {!isFinished && (
             <form onSubmit={submitNote} className="card">
-              <h2 className="text-lg font-semibold">New Note</h2>
+              <h2 className="text-lg font-semibold text-slate-900">New Note</h2>
               <textarea
                 className="input mt-4"
                 rows={10}
@@ -392,24 +321,22 @@ export default function EncounterDetailPage() {
                 onChange={(e) => setNoteContent(e.target.value)}
                 placeholder="S: Subjective&#10;O: Objective&#10;A: Assessment&#10;P: Plan"
               />
-              <button
-                type="submit"
-                className="btn btn-primary mt-4"
-                disabled={!noteContent.trim()}
-              >
+              <button type="submit" className="btn btn-primary mt-4" disabled={!noteContent.trim()}>
                 Save note
               </button>
             </form>
           )}
 
           <div className="card">
-            <h2 className="text-lg font-semibold">Notes ({notes.length})</h2>
+            <h2 className="text-lg font-semibold text-slate-900">
+              Notes ({notes.length})
+            </h2>
             {notes.length === 0 ? (
               <p className="muted mt-4">No notes yet.</p>
             ) : (
               <div className="mt-4 space-y-4">
                 {notes.map((n) => (
-                  <div key={n.id} className="rounded-md bg-slate-50 p-4">
+                  <div key={n.id} className="rounded-lg bg-slate-50 p-4">
                     <p className="muted text-xs">
                       v{n.version} · {new Date(n.createdAt).toLocaleString()}
                     </p>
@@ -428,55 +355,31 @@ export default function EncounterDetailPage() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {!isFinished && (
             <form onSubmit={submitDiagnosis} className="card">
-              <h2 className="text-lg font-semibold">Add Diagnosis</h2>
+              <h2 className="text-lg font-semibold text-slate-900">Add Diagnosis</h2>
               <div className="mt-4 space-y-3">
                 <div>
                   <label className="label">ICD-10 code *</label>
-                  <input
-                    className="input"
-                    value={diagForm.code}
-                    onChange={(e) =>
-                      setDiagForm({ ...diagForm, code: e.target.value })
-                    }
-                    placeholder="e.g. J06.9"
-                    required
-                  />
+                  <input className="input" value={diagForm.code} onChange={(e) => setDiagForm({ ...diagForm, code: e.target.value })} placeholder="e.g. J06.9" required />
                 </div>
                 <div>
                   <label className="label">Display *</label>
-                  <input
-                    className="input"
-                    value={diagForm.display}
-                    onChange={(e) =>
-                      setDiagForm({ ...diagForm, display: e.target.value })
-                    }
-                    placeholder="e.g. Acute upper respiratory infection"
-                    required
-                  />
+                  <input className="input" value={diagForm.display} onChange={(e) => setDiagForm({ ...diagForm, display: e.target.value })} placeholder="e.g. Acute upper respiratory infection" required />
                 </div>
                 <div>
                   <label className="label">Certainty</label>
-                  <select
-                    className="input"
-                    value={diagForm.certainty}
-                    onChange={(e) =>
-                      setDiagForm({ ...diagForm, certainty: e.target.value })
-                    }
-                  >
+                  <select className="input" value={diagForm.certainty} onChange={(e) => setDiagForm({ ...diagForm, certainty: e.target.value })}>
                     <option value="provisional">Provisional</option>
                     <option value="confirmed">Confirmed</option>
                     <option value="differential">Differential</option>
                   </select>
                 </div>
               </div>
-              <button type="submit" className="btn btn-primary mt-4">
-                Add diagnosis
-              </button>
+              <button type="submit" className="btn btn-primary mt-4">Add diagnosis</button>
             </form>
           )}
 
           <div className="card">
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-lg font-semibold text-slate-900">
               Diagnoses ({diagnoses.length})
             </h2>
             {diagnoses.length === 0 ? (
@@ -484,18 +387,11 @@ export default function EncounterDetailPage() {
             ) : (
               <div className="mt-4 space-y-2">
                 {diagnoses.map((d) => (
-                  <div
-                    key={d.id}
-                    className="flex items-start gap-3 rounded-md bg-slate-50 p-3"
-                  >
-                    <span className="font-mono text-xs bg-white px-2 py-1 rounded">
-                      {d.code}
-                    </span>
+                  <div key={d.id} className="flex items-start gap-3 rounded-lg bg-slate-50 p-3">
+                    <span className="rounded bg-white px-2 py-1 font-mono text-xs">{d.code}</span>
                     <div>
-                      <p className="text-sm font-medium">{d.display}</p>
-                      {d.certainty && (
-                        <p className="muted text-xs">{d.certainty}</p>
-                      )}
+                      <p className="text-sm font-medium text-slate-900">{d.display}</p>
+                      {d.certainty && <p className="muted text-xs">{d.certainty}</p>}
                     </div>
                   </div>
                 ))}
@@ -509,12 +405,20 @@ export default function EncounterDetailPage() {
         <PrescriptionsTab patientId={patient.id} encounterId={encounter.id} />
       )}
 
+      {tab === "lab" && (
+        <LabTab
+          patientId={patient.id}
+          encounterId={encounter.id}
+          isFinished={isFinished}
+        />
+      )}
+
       {tab === "fhir" && (
         <div className="card">
           <p className="muted mb-3 text-sm">
             FHIR R4 resources generated from this encounter.
           </p>
-          <pre className="overflow-auto rounded-md bg-slate-900 p-4 text-xs text-slate-100">
+          <pre className="overflow-auto rounded-lg bg-slate-900 p-4 text-xs text-slate-100">
             {JSON.stringify(encounter.fhirResource, null, 2)}
           </pre>
         </div>
