@@ -1,3 +1,10 @@
+// ═══════════════════════════════════════════════════════════════
+//  CURA HEALTH — API CLIENT
+//  ⚠️  NEVER REPLACE THIS FILE — ONLY APPEND
+//  Every page in the app imports from here. If you replace it,
+//  you break the entire UI (sidebar, login, patients, everything).
+//  To add a new module, APPEND a new block at the bottom.
+// ═══════════════════════════════════════════════════════════════
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export interface ApiError {
@@ -7,17 +14,17 @@ export interface ApiError {
 
 const getToken = (): string | null => {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("clinic_two_token");
+  return localStorage.getItem("cura_token");
 };
 
 const setToken = (token: string) => {
   if (typeof window === "undefined") return;
-  localStorage.setItem("clinic_two_token", token);
+  localStorage.setItem("cura_token", token);
 };
 
 const clearToken = () => {
   if (typeof window === "undefined") return;
-  localStorage.removeItem("clinic_two_token");
+  localStorage.removeItem("cura_token");
 };
 
 const request = async <T>(
@@ -69,7 +76,7 @@ export const auth = {
     }>("/api/auth/login", { tenantSlug, email, password });
     setToken(res.data.token);
     if (typeof window !== "undefined") {
-      localStorage.setItem("clinic_two_user", JSON.stringify(res.data.user));
+      localStorage.setItem("cura_user", JSON.stringify(res.data.user));
     }
     return res.data;
   },
@@ -77,13 +84,13 @@ export const auth = {
   logout: () => {
     clearToken();
     if (typeof window !== "undefined") {
-      localStorage.removeItem("clinic_two_user");
+      localStorage.removeItem("cura_user");
     }
   },
 
   getUser: () => {
     if (typeof window === "undefined") return null;
-    const raw = localStorage.getItem("clinic_two_user");
+    const raw = localStorage.getItem("cura_user");
     return raw ? JSON.parse(raw) : null;
   },
 
@@ -252,4 +259,73 @@ export const prescriptions = {
       data: PrescriptionRecord;
       cds: CdsResult & { overridden: boolean };
     }>("/api/prescriptions", payload)
+};
+
+// ── Invoices + Payments ──
+export interface InvoiceLineItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: string;
+  amount: string;
+}
+
+export interface PaymentRecord {
+  id: string;
+  invoiceId: string;
+  amount: string;
+  method: string;
+  reference: string | null;
+  receivedAt: string;
+}
+
+export interface InvoiceRecord {
+  id: string;
+  patientId: string;
+  number: string;
+  status: string;
+  subtotal: string;
+  tax: string;
+  discount: string;
+  total: string;
+  balance: string;
+  issuedAt: string | null;
+  createdAt: string;
+  lineItems: InvoiceLineItem[];
+  payments: PaymentRecord[];
+  patient?: {
+    id: string;
+    mrn: string;
+    firstName: string;
+    lastName: string;
+  };
+}
+
+export const invoices = {
+  list: (patientId?: string) =>
+    api.get<{ data: InvoiceRecord[] }>(
+      `/api/invoices${patientId ? `?patientId=${patientId}` : ""}`
+    ),
+  get: (id: string) => api.get<{ data: InvoiceRecord }>(`/api/invoices/${id}`),
+  create: (payload: {
+    patientId: string;
+    tax?: number;
+    discount?: number;
+    lineItems: { description: string; quantity: number; unitPrice: number }[];
+  }) => api.post<{ data: InvoiceRecord }>("/api/invoices", payload),
+  void: (id: string) =>
+    api.patch<{ data: InvoiceRecord }>(`/api/invoices/${id}/void`, {})
+};
+
+export const payments = {
+  record: (payload: {
+    invoiceId: string;
+    amount: number;
+    method: "CASH" | "TRANSFER" | "POS" | "HMO" | "CARD";
+    reference?: string;
+  }) =>
+    api.post<{ data: { payment: PaymentRecord; invoice: InvoiceRecord } }>(
+      "/api/payments",
+      payload
+    )
 };
