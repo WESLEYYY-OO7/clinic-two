@@ -1,4 +1,7 @@
-import "dotenv/config";
+import { config } from "dotenv";
+import { resolve } from "path";
+config({ path: resolve(__dirname, "../../../.env") });
+
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
@@ -18,12 +21,19 @@ process.on("unhandledRejection", (reason) => {
 
 const app = express();
 app.use(helmet());
-app.use(cors({ origin: process.env.WEB_ORIGIN, credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 
+// Health
 app.use("/health", healthRoutes);
+
+// Auth routes — login, register, AND /me are all inside authRoutes
+// but /me needs auth, so we split:
 app.use("/api/auth", authRoutes);
+
+// Everything else requires auth + tenant context
 app.use("/api", authMiddleware, tenantMiddleware, apiRoutes);
+
 app.use(errorHandler);
 
 const port = Number(process.env.API_PORT) || 4000;

@@ -5,35 +5,59 @@ import { useEffect, useState } from "react";
 import { auth } from "@/lib/api";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/patients", label: "Patients" },
-  { href: "/appointments", label: "Appointments" },
-  { href: "/encounters", label: "Encounters" },
-  { href: "/billing", label: "Billing" },
-  { href: "/settings", label: "Settings" }
+  { key: "dashboard", href: "/dashboard", label: "Dashboard" },
+  { key: "patients", href: "/patients", label: "Patients" },
+  { key: "appointments", href: "/appointments", label: "Appointments" },
+  { key: "encounters", href: "/encounters", label: "Encounters" },
+  { key: "inventory", href: "/inventory", label: "Inventory" },
+  { key: "billing", href: "/billing", label: "Billing" },
+  { key: "settings", href: "/settings", label: "Settings" }
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<{
-    email: string;
-    role: string;
-  } | null>(null);
+  const [user, setUser] = useState<{ email: string; role: string } | null>(null);
+  const [menu, setMenu] = useState<string[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const u = auth.getUser();
-    if (u) {
-      setUser({ email: u.email, role: u.role });
+
+    // Read cached user immediately so there's no flash
+    const cached = auth.getUser();
+    if (cached) {
+      setUser({ email: cached.email, role: cached.role });
     }
+
+    // Then fetch fresh data from /me
+    auth
+      .me()
+      .then((res) => {
+        setUser({
+          email: res.data.user.email,
+          role: res.data.user.role
+        });
+        setMenu(res.data.menu);
+      })
+      .catch(() => {
+        // If /me fails, log out
+        auth.logout();
+        router.push("/login");
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogout = () => {
     auth.logout();
     router.push("/login");
   };
+
+  // Filter menu based on what /me returned
+  const visibleNav =
+    menu.length > 0
+      ? NAV.filter((item) => menu.includes(item.key))
+      : NAV; // fallback: show all until /me loads
 
   return (
     <aside className="flex h-screen w-64 flex-col border-r bg-white">
@@ -75,7 +99,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 space-y-1 p-3">
-        {NAV.map((item) => {
+        {visibleNav.map((item) => {
           const active = pathname?.startsWith(item.href);
           return (
             <Link

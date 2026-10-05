@@ -87,7 +87,94 @@ export const auth = {
     return raw ? JSON.parse(raw) : null;
   },
 
-  isAuthenticated: () => !!getToken()
+  isAuthenticated: () => !!getToken(),
+
+  me: () =>
+    api.get<{
+      data: {
+        user: {
+          id: string;
+          email: string;
+          fullName: string;
+          role: string;
+          tenantId: string;
+          lastLoginAt: string | null;
+        };
+        role: string;
+        menu: string[];
+        permissions: string[];
+      };
+    }>("/api/me")
+};
+
+// ── Users (staff management) ──
+export interface StaffRecord {
+  id: string;
+  email: string;
+  fullName: string;
+  role: string;
+  isActive: boolean;
+  phone: string | null;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
+export const users = {
+  list: () => api.get<{ data: StaffRecord[] }>("/api/users"),
+
+  create: (payload: {
+    email: string;
+    password: string;
+    fullName: string;
+    role: string;
+    phone?: string;
+  }) => api.post<{ data: StaffRecord }>("/api/users", payload),
+
+  update: (
+    id: string,
+    payload: {
+      fullName?: string;
+      role?: string;
+      phone?: string;
+      isActive?: boolean;
+    }
+  ) => api.patch<{ data: StaffRecord }>(`/api/users/${id}`, payload),
+
+  resetPassword: (id: string, password: string) =>
+    api.post<{ data: { ok: boolean } }>(`/api/users/${id}/reset-password`, {
+      password
+    })
+};
+
+// ── Patients ──
+export interface PatientRecord {
+  id: string;
+  mrn: string;
+  firstName: string;
+  middleName: string | null;
+  lastName: string;
+  dateOfBirth: string;
+  gender: string;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  bloodGroup: string | null;
+  allergies?: string[];
+  nextOfKin?: any;
+  fhirResource?: any;
+  encounters?: any[];
+  invoices?: any[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export const patients = {
+  list: (q?: string) =>
+    api.get<{ data: PatientRecord[] }>(
+      `/api/patients${q ? `?q=${encodeURIComponent(q)}` : ""}`
+    ),
+  get: (id: string) =>
+    api.get<{ data: PatientRecord }>(`/api/patients/${id}`)
 };
 
 // ── Encounters ──
@@ -201,7 +288,7 @@ export const drugs = {
   list: () => api.get<{ data: DrugRecord[] }>("/api/drugs")
 };
 
-// ── Prescriptions + CDS ──
+// ── Prescriptions ──
 export interface PrescriptionRecord {
   id: string;
   patientId: string;
@@ -232,13 +319,11 @@ export const prescriptions = {
     api.get<{ data: PrescriptionRecord[] }>(
       `/api/prescriptions${patientId ? `?patientId=${patientId}` : ""}`
     ),
-
   preview: (patientId: string, drugId: string) =>
     api.post<{ data: CdsResult }>("/api/prescriptions/preview", {
       patientId,
       drugId
     }),
-
   create: (payload: {
     patientId: string;
     drugId: string;
@@ -299,8 +384,7 @@ export const invoices = {
     api.get<{ data: InvoiceRecord[] }>(
       `/api/invoices${patientId ? `?patientId=${patientId}` : ""}`
     ),
-  get: (id: string) =>
-    api.get<{ data: InvoiceRecord }>(`/api/invoices/${id}`),
+  get: (id: string) => api.get<{ data: InvoiceRecord }>(`/api/invoices/${id}`),
   create: (payload: {
     patientId: string;
     tax?: number;
@@ -352,9 +436,7 @@ export interface LabOrderRecord {
 }
 
 export const lab = {
-  tests: () =>
-    api.get<{ data: LabTestRecord[] }>("/api/lab-orders/tests"),
-
+  tests: () => api.get<{ data: LabTestRecord[] }>("/api/lab-orders/tests"),
   list: (filter?: { encounterId?: string; patientId?: string }) => {
     const q = new URLSearchParams();
     if (filter?.encounterId) q.set("encounterId", filter.encounterId);
@@ -364,17 +446,14 @@ export const lab = {
       `/api/lab-orders${qs ? `?${qs}` : ""}`
     );
   },
-
   get: (id: string) =>
     api.get<{ data: LabOrderRecord }>(`/api/lab-orders/${id}`),
-
   create: (payload: {
     encounterId: string;
     patientId: string;
     testId: string;
     notes?: string;
   }) => api.post<{ data: LabOrderRecord }>("/api/lab-orders", payload),
-
   result: (id: string, payload: { resultValue: string; resultFlag?: string }) =>
     api.patch<{ data: LabOrderRecord }>(
       `/api/lab-orders/${id}/result`,

@@ -54,7 +54,7 @@ router.post("/register", async (req, res) => {
   const token = signToken(
     { sub: user.id, tenantId: tenant.id, role: user.role as Role },
     process.env.JWT_SECRET!,
-    process.env.JWT_EXPIRES_IN || "15m"
+    process.env.JWT_EXPIRES_IN || "7d"
   );
 
   res.status(201).json({
@@ -94,7 +94,7 @@ router.post("/login", async (req, res) => {
   const token = signToken(
     { sub: user.id, tenantId: tenant.id, role: user.role as Role },
     process.env.JWT_SECRET!,
-    process.env.JWT_EXPIRES_IN || "15m"
+    process.env.JWT_EXPIRES_IN || "7d"
   );
 
   await auditFromRequest(

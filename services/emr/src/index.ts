@@ -4,3 +4,4 @@ export { default as vitalsRouter } from "./routes/vitals.routes";
 export { default as notesRouter } from "./routes/notes.routes";
 export { default as diagnosesRouter } from "./routes/diagnoses.routes";
 export { default as appointmentsRouter } from "./routes/appointments.routes";
+export { default as usersRouter } from "./routes/users.routes";

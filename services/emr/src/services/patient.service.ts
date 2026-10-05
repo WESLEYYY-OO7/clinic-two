@@ -2,7 +2,10 @@ import { prisma } from "@cura/db-client";
 import { toFhirPatient } from "@cura/fhir-models";
 import type { PatientInputType } from "../validators/patient.schema";
 
-export const createPatient = async (tenantId: string, input: PatientInputType) => {
+export const createPatient = async (
+  tenantId: string,
+  input: PatientInputType
+) => {
   const count = await prisma.patient.count({ where: { tenantId } });
   const mrn = `MRN-${String(count + 1).padStart(6, "0")}`;
 
@@ -57,7 +60,10 @@ export const getPatientById = async (tenantId: string, id: string) => {
   return prisma.patient.findFirst({
     where: { id, tenantId },
     include: {
-      encounters: { take: 10, orderBy: { startedAt: "desc" } }
+      encounters: {
+        take: 10,
+        orderBy: { startedAt: "desc" }
+      }
     }
   });
 };
