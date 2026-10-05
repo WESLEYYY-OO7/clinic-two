@@ -277,20 +277,26 @@ enum PaymentMethod {
 }
 
 model Appointment {
-  id         String            @id @default(uuid())
-  tenantId   String
-  patientId  String
-  providerId String
-  startsAt   DateTime
-  endsAt     DateTime
-  status     AppointmentStatus @default(SCHEDULED)
-  reason     String?
-  createdAt  DateTime          @default(now())
+  id              String            @id @default(uuid())
+  tenantId        String
+  patientId       String
+  providerId      String
+  startsAt        DateTime
+  endsAt          DateTime
+  status          AppointmentStatus @default(SCHEDULED)
+  reason          String?
+  notes           String?
+  reminderSentAt  DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   tenant  Tenant  @relation(fields: [tenantId], references: [id])
   patient Patient @relation(fields: [patientId], references: [id])
 
   @@index([tenantId, startsAt])
+  @@index([tenantId, patientId])
+  @@index([tenantId, providerId])
+  @@index([tenantId, status])
 }
 
 enum AppointmentStatus {
