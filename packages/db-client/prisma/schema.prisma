@@ -14,18 +14,22 @@ model Tenant {
   plan      Plan     @default(STARTER)
   createdAt DateTime @default(now())
 
-  users         User[]
-  patients      Patient[]
-  encounters    Encounter[]
-  invoices      Invoice[]
-  appointments  Appointment[]
-  auditLogs     AuditLog[]
-  drugs         Drug[]
-  prescriptions Prescription[]
-  labOrders     LabOrder[]
-  labTests      LabTest[]
-  employees     Employee[]
-  claims        Claim[]
+  users          User[]
+  patients       Patient[]
+  encounters     Encounter[]
+  invoices       Invoice[]
+  appointments   Appointment[]
+  auditLogs      AuditLog[]
+  drugs          Drug[]
+  prescriptions  Prescription[]
+  labOrders      LabOrder[]
+  labTests       LabTest[]
+  employees      Employee[]
+  claims         Claim[]
+  items          Item[]
+  stockLocations StockLocation[]
+  stockBatches   StockBatch[]
+  stockMovements StockMovement[]
 }
 
 enum Plan {
@@ -42,6 +46,7 @@ model User {
   fullName     String
   role         Role
   isActive     Boolean   @default(true)
+  phone        String?
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
 
@@ -422,4 +427,129 @@ enum ClaimStatus {
   APPROVED
   DENIED
   PAID
+}
+
+// ─────────────────────────────────────────────────────────
+// INVENTORY
+// ─────────────────────────────────────────────────────────
+
+model Item {
+  id           String       @id @default(uuid())
+  tenantId     String
+  code         String
+  name         String
+  category     ItemCategory
+  unit         ItemUnit
+  reorderLevel Int          @default(0)
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+
+  tenant    Tenant          @relation(fields: [tenantId], references: [id])
+  batches   StockBatch[]
+  movements StockMovement[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId, category])
+  @@index([tenantId, isActive])
+}
+
+enum ItemCategory {
+  DRUG
+  INJECTION
+  CONSUMABLE
+  EQUIPMENT
+  REAGENT
+}
+
+enum ItemUnit {
+  TABLET
+  CAPSULE
+  VIAL
+  AMPOULE
+  BOTTLE
+  BOX
+  SACHET
+  PIECE
+  PAIR
+  SET
+}
+
+model StockLocation {
+  id        String            @id @default(uuid())
+  tenantId  String
+  name      String
+  type      StockLocationType
+  isActive  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+
+  tenant    Tenant            @relation(fields: [tenantId], references: [id])
+  batches   StockBatch[]
+  movements StockMovement[]
+
+  @@index([tenantId, type])
+}
+
+enum StockLocationType {
+  STORE
+  PHARMACY
+  WARD
+  THEATRE
+  LAB
+}
+
+model StockBatch {
+  id          String   @id @default(uuid())
+  tenantId    String
+  itemId      String
+  locationId  String
+  batchNumber String
+  expiryDate  DateTime
+  quantity    Int      @default(0)
+  costPrice   Decimal  @db.Decimal(12, 2) @default(0)
+  supplier    String?
+  createdAt   DateTime @default(now())
+
+  tenant    Tenant          @relation(fields: [tenantId], references: [id])
+  item      Item            @relation(fields: [itemId], references: [id])
+  location  StockLocation   @relation(fields: [locationId], references: [id])
+  movements StockMovement[]
+
+  @@unique([tenantId, itemId, locationId, batchNumber])
+  @@index([tenantId, itemId])
+  @@index([tenantId, expiryDate])
+}
+
+model StockMovement {
+  id            String             @id @default(uuid())
+  tenantId      String
+  itemId        String
+  batchId       String?
+  locationId    String
+  type          StockMovementType
+  quantity      Int
+  referenceType String?
+  referenceId   String?
+  reason        String?
+  performedById String?
+  createdAt     DateTime           @default(now())
+
+  tenant    Tenant        @relation(fields: [tenantId], references: [id])
+  item      Item          @relation(fields: [itemId], references: [id])
+  batch     StockBatch?   @relation(fields: [batchId], references: [id])
+  location  StockLocation @relation(fields: [locationId], references: [id])
+
+  @@index([tenantId, itemId])
+  @@index([tenantId, locationId])
+  @@index([tenantId, createdAt])
+}
+
+enum StockMovementType {
+  RECEIVE
+  DISPENSE
+  TRANSFER_IN
+  TRANSFER_OUT
+  ADJUST_IN
+  ADJUST_OUT
+  EXPIRE
+  RETURN
 }

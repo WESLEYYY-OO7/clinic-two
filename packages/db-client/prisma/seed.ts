@@ -3,10 +3,6 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-// ─────────────────────────────────────────────────────────
-// CLINIC
-// ─────────────────────────────────────────────────────────
-
 const TENANT = {
   name: "Ivie Specialist Clinic",
   slug: "ivie-specialist",
@@ -155,9 +151,33 @@ const LAB_TESTS = [
   { code: "FT4", name: "Free T4", specimen: "Blood", unit: "ng/dL", referenceRange: "0.8–1.8" }
 ];
 
+const STOCK_LOCATIONS = [
+  { name: "Main Store", type: "STORE" as const },
+  { name: "Pharmacy", type: "PHARMACY" as const },
+  { name: "Ward A", type: "WARD" as const },
+  { name: "Theatre", type: "THEATRE" as const },
+  { name: "Laboratory", type: "LAB" as const }
+];
+
+const STARTER_ITEMS = [
+  { code: "AMOX-500", name: "Amoxicillin 500mg", category: "DRUG" as const, unit: "CAPSULE" as const, reorderLevel: 100 },
+  { code: "PARA-500", name: "Paracetamol 500mg", category: "DRUG" as const, unit: "TABLET" as const, reorderLevel: 200 },
+  { code: "COARTEM", name: "Coartem 20/120mg", category: "DRUG" as const, unit: "TABLET" as const, reorderLevel: 50 },
+  { code: "INJ-CEFTRI", name: "Ceftriaxone 1g Injection", category: "INJECTION" as const, unit: "VIAL" as const, reorderLevel: 30 },
+  { code: "INJ-ARTE", name: "Artesunate 60mg Injection", category: "INJECTION" as const, unit: "VIAL" as const, reorderLevel: 20 },
+  { code: "GLV-M", name: "Disposable Gloves (Medium)", category: "CONSUMABLE" as const, unit: "BOX" as const, reorderLevel: 20 },
+  { code: "SYR-5ML", name: "Syringe 5ml", category: "CONSUMABLE" as const, unit: "PIECE" as const, reorderLevel: 500 },
+  { code: "COT-WOOL", name: "Cotton Wool 500g", category: "CONSUMABLE" as const, unit: "SACHET" as const, reorderLevel: 10 },
+  { code: "BAND-ROLL", name: "Bandage Roll", category: "CONSUMABLE" as const, unit: "PIECE" as const, reorderLevel: 100 },
+  { code: "MRDT-KIT", name: "Malaria RDT Kit", category: "REAGENT" as const, unit: "PIECE" as const, reorderLevel: 50 },
+  { code: "GLU-STRIP", name: "Glucometer Test Strips", category: "REAGENT" as const, unit: "BOX" as const, reorderLevel: 20 },
+  { code: "BP-MON", name: "Blood Pressure Monitor", category: "EQUIPMENT" as const, unit: "PIECE" as const, reorderLevel: 2 }
+];
+
 async function main() {
   console.log("🌱 Seeding Ivie Specialist Clinic...\n");
 
+  // ── Tenant ──
   const tenant = await prisma.tenant.upsert({
     where: { slug: TENANT.slug },
     update: { name: TENANT.name },
@@ -165,6 +185,7 @@ async function main() {
   });
   console.log(`✅ Tenant: ${tenant.name} (${tenant.slug})`);
 
+  // ── Staff ──
   for (const s of STAFF) {
     const passwordHash = await bcrypt.hash(s.password, 12);
     await prisma.user.upsert({
@@ -175,6 +196,7 @@ async function main() {
     console.log(`✅ Staff: ${s.fullName} (${s.role})`);
   }
 
+  // ── Patients ──
   const existingPatients = await prisma.patient.count({ where: { tenantId: tenant.id } });
   if (existingPatients === 0) {
     let mrnCounter = 1;
@@ -182,17 +204,11 @@ async function main() {
       const mrn = `MRN-${String(mrnCounter).padStart(6, "0")}`;
       await prisma.patient.create({
         data: {
-          tenantId: tenant.id,
-          mrn,
-          firstName: p.firstName,
-          lastName: p.lastName,
-          dateOfBirth: new Date(p.dateOfBirth),
-          gender: p.gender,
-          phone: p.phone,
-          email: p.email,
-          address: p.address,
-          bloodGroup: p.bloodGroup,
-          allergies: p.allergies,
+          tenantId: tenant.id, mrn,
+          firstName: p.firstName, lastName: p.lastName,
+          dateOfBirth: new Date(p.dateOfBirth), gender: p.gender,
+          phone: p.phone, email: p.email, address: p.address,
+          bloodGroup: p.bloodGroup, allergies: p.allergies,
           nextOfKin: p.nextOfKin
         }
       });
@@ -203,6 +219,7 @@ async function main() {
     console.log(`⏭️  Skipped patients (${existingPatients} already exist)`);
   }
 
+  // ── Drugs ──
   let drugCounter = 0;
   for (const d of DRUGS) {
     const existing = await prisma.drug.findFirst({ where: { tenantId: tenant.id, name: d.name } });
@@ -215,6 +232,7 @@ async function main() {
   }
   const drugCount = await prisma.drug.count({ where: { tenantId: tenant.id } });
 
+  // ── Lab tests ──
   let testCounter = 0;
   for (const t of LAB_TESTS) {
     const existing = await prisma.labTest.findFirst({ where: { tenantId: tenant.id, code: t.code } });
@@ -227,12 +245,97 @@ async function main() {
   }
   const labTestCount = await prisma.labTest.count({ where: { tenantId: tenant.id } });
 
+  // ── Stock Locations ──
+  for (const loc of STOCK_LOCATIONS) {
+    const existing = await prisma.stockLocation.findFirst({ where: { tenantId: tenant.id, name: loc.name } });
+    if (!existing) {
+      await prisma.stockLocation.create({
+        data: { tenantId: tenant.id, name: loc.name, type: loc.type }
+      });
+      console.log(`✅ Location: ${loc.name}`);
+    }
+  }
+
+  // ── Starter Items ──
+  for (const item of STARTER_ITEMS) {
+    const existing = await prisma.item.findFirst({ where: { tenantId: tenant.id, code: item.code } });
+    if (!existing) {
+      await prisma.item.create({
+        data: {
+          tenantId: tenant.id, code: item.code, name: item.name,
+          category: item.category, unit: item.unit, reorderLevel: item.reorderLevel
+        }
+      });
+      console.log(`✅ Item: ${item.name}`);
+    }
+  }
+
+  // ── Initial Stock ──
+  const mainStore = await prisma.stockLocation.findFirst({ where: { tenantId: tenant.id, name: "Main Store" } });
+  const pharmacy = await prisma.stockLocation.findFirst({ where: { tenantId: tenant.id, name: "Pharmacy" } });
+
+  if (mainStore && pharmacy) {
+    const paracetamolItem = await prisma.item.findFirst({ where: { tenantId: tenant.id, code: "PARA-500" } });
+    if (paracetamolItem) {
+      const existingBatch = await prisma.stockBatch.findFirst({
+        where: { tenantId: tenant.id, itemId: paracetamolItem.id, locationId: mainStore.id }
+      });
+      if (!existingBatch) {
+        const batch = await prisma.stockBatch.create({
+          data: {
+            tenantId: tenant.id, itemId: paracetamolItem.id, locationId: mainStore.id,
+            batchNumber: "BATCH-2026-001", expiryDate: new Date("2027-12-31"),
+            quantity: 1000, costPrice: 15.0, supplier: "Emzor Pharmaceuticals"
+          }
+        });
+        await prisma.stockMovement.create({
+          data: {
+            tenantId: tenant.id, itemId: paracetamolItem.id, batchId: batch.id,
+            locationId: mainStore.id, type: "RECEIVE", quantity: 1000,
+            reason: "Initial stock", referenceType: "Seed"
+          }
+        });
+        console.log(`✅ Stock: 1000 × Paracetamol 500mg @ Main Store`);
+      }
+    }
+
+    const amoxItem = await prisma.item.findFirst({ where: { tenantId: tenant.id, code: "AMOX-500" } });
+    if (amoxItem) {
+      const existingBatch = await prisma.stockBatch.findFirst({
+        where: { tenantId: tenant.id, itemId: amoxItem.id, locationId: pharmacy.id }
+      });
+      if (!existingBatch) {
+        const batch = await prisma.stockBatch.create({
+          data: {
+            tenantId: tenant.id, itemId: amoxItem.id, locationId: pharmacy.id,
+            batchNumber: "BATCH-2026-002", expiryDate: new Date("2027-06-30"),
+            quantity: 200, costPrice: 25.0, supplier: "GSK Nigeria"
+          }
+        });
+        await prisma.stockMovement.create({
+          data: {
+            tenantId: tenant.id, itemId: amoxItem.id, batchId: batch.id,
+            locationId: pharmacy.id, type: "RECEIVE", quantity: 200,
+            reason: "Initial stock", referenceType: "Seed"
+          }
+        });
+        console.log(`✅ Stock: 200 × Amoxicillin 500mg @ Pharmacy`);
+      }
+    }
+  }
+
+  // ── Summary ──
+  const itemCount = await prisma.item.count({ where: { tenantId: tenant.id } });
+  const locationCount = await prisma.stockLocation.count({ where: { tenantId: tenant.id } });
+
   console.log("\n" + "─".repeat(50));
   console.log(`🏥 ${tenant.name}`);
   console.log(`   Slug:       ${tenant.slug}`);
   console.log(`   Staff:      ${STAFF.length} users`);
-  console.log(`   Drugs:      ${drugCount} in catalogue (${drugCounter} added)`);
-  console.log(`   Lab tests:  ${labTestCount} in catalogue (${testCounter} added)`);
+  console.log(`   Drugs:      ${drugCount} in catalogue`);
+  console.log(`   Lab tests:  ${labTestCount} in catalogue`);
+  console.log(`   Items:      ${itemCount} in inventory`);
+  console.log(`   Locations:  ${locationCount} stock locations`);
   console.log("─".repeat(50));
 
   console.log("\n🔐 Login credentials:");
