@@ -11,7 +11,11 @@ import {
   usersRouter
 } from "@cura/emr";
 import { invoicesRouter, paymentsRouter } from "@cura/billing";
-import { drugsRouter, prescriptionsRouter } from "@cura/pharmacy";
+import {
+  drugsRouter,
+  prescriptionsRouter,
+  dispenseRouter
+} from "@cura/pharmacy";
 import { labOrdersRouter } from "@cura/lab";
 import { itemsRouter, locationsRouter, stockRouter } from "@cura/inventory";
 import { employeesRouter } from "@cura/hr";
@@ -20,7 +24,7 @@ import { evaluateRouter } from "@cura/cds";
 
 const router = Router();
 
-// ── Current user (/me) ──
+// ── Current user ──
 router.get("/me", async (req, res) => {
   const ctx = req.user!;
   const user = await prisma.user.findFirst({
@@ -60,6 +64,7 @@ router.use("/invoices", invoicesRouter);
 router.use("/payments", paymentsRouter);
 router.use("/drugs", drugsRouter);
 router.use("/prescriptions", prescriptionsRouter);
+router.use("/prescriptions", dispenseRouter);
 router.use("/lab-orders", labOrdersRouter);
 router.use("/items", itemsRouter);
 router.use("/stock-locations", locationsRouter);

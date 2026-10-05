@@ -24,14 +24,8 @@ app.use(helmet());
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 
-// Health
 app.use("/health", healthRoutes);
-
-// Auth routes — login, register, AND /me are all inside authRoutes
-// but /me needs auth, so we split:
 app.use("/api/auth", authRoutes);
-
-// Everything else requires auth + tenant context
 app.use("/api", authMiddleware, tenantMiddleware, apiRoutes);
 
 app.use(errorHandler);
