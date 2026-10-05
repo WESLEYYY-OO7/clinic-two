@@ -460,3 +460,172 @@ export const lab = {
       payload
     )
 };
+
+// ── Inventory ──
+export interface ItemRecord {
+  id: string;
+  code: string;
+  name: string;
+  category: "DRUG" | "INJECTION" | "CONSUMABLE" | "EQUIPMENT" | "REAGENT";
+  unit: string;
+  reorderLevel: number;
+  isActive: boolean;
+  totalStock?: number;
+  createdAt: string;
+}
+
+export interface StockLocationRecord {
+  id: string;
+  name: string;
+  type: "STORE" | "PHARMACY" | "WARD" | "THEATRE" | "LAB";
+  isActive: boolean;
+}
+
+export interface StockBatchRecord {
+  id: string;
+  itemId: string;
+  locationId: string;
+  batchNumber: string;
+  expiryDate: string;
+  quantity: number;
+  costPrice: string;
+  supplier: string | null;
+  location?: StockLocationRecord;
+}
+
+export interface StockLevelRecord {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+  unit: string;
+  reorderLevel: number;
+  total: number;
+  status: "OUT" | "LOW" | "OK";
+  perLocation: Record<string, number>;
+}
+
+export interface StockMovementRecord {
+  id: string;
+  itemId: string;
+  batchId: string | null;
+  locationId: string;
+  type: string;
+  quantity: number;
+  referenceType: string | null;
+  referenceId: string | null;
+  reason: string | null;
+  performedById: string | null;
+  createdAt: string;
+  item: { id: string; code: string; name: string; unit: string };
+  location: { id: string; name: string };
+  batch: { id: string; batchNumber: string; expiryDate: string } | null;
+}
+
+export const items = {
+  list: (filter?: { q?: string; category?: string }) => {
+    const q = new URLSearchParams();
+    if (filter?.q) q.set("q", filter.q);
+    if (filter?.category) q.set("category", filter.category);
+    const qs = q.toString();
+    return api.get<{ data: ItemRecord[] }>(
+      `/api/items${qs ? `?${qs}` : ""}`
+    );
+  },
+  get: (id: string) =>
+    api.get<{ data: ItemRecord & { batches: StockBatchRecord[] } }>(
+      `/api/items/${id}`
+    ),
+  create: (payload: {
+    code: string;
+    name: string;
+    category: string;
+    unit: string;
+    reorderLevel?: number;
+  }) => api.post<{ data: ItemRecord }>("/api/items", payload),
+  update: (id: string, payload: Partial<ItemRecord>) =>
+    api.patch<{ data: ItemRecord }>(`/api/items/${id}`, payload)
+};
+
+export const locations = {
+  list: () =>
+    api.get<{ data: StockLocationRecord[] }>("/api/stock-locations"),
+  create: (payload: { name: string; type: string }) =>
+    api.post<{ data: StockLocationRecord }>("/api/stock-locations", payload)
+};
+
+export const stock = {
+  levels: () =>
+    api.get<{ data: StockLevelRecord[] }>("/api/stock/levels"),
+
+  movements: (filter?: {
+    itemId?: string;
+    locationId?: string;
+    type?: string;
+    limit?: number;
+  }) => {
+    const q = new URLSearchParams();
+    if (filter?.itemId) q.set("itemId", filter.itemId);
+    if (filter?.locationId) q.set("locationId", filter.locationId);
+    if (filter?.type) q.set("type", filter.type);
+    if (filter?.limit) q.set("limit", String(filter.limit));
+    const qs = q.toString();
+    return api.get<{ data: StockMovementRecord[] }>(
+      `/api/stock/movements${qs ? `?${qs}` : ""}`
+    );
+  },
+
+  receive: (payload: {
+    itemId: string;
+    locationId: string;
+    batchNumber: string;
+    expiryDate: string;
+    quantity: number;
+    costPrice?: number;
+    supplier?: string;
+    reason?: string;
+  }) =>
+    api.post<{
+      data: { batch: StockBatchRecord; movement: StockMovementRecord };
+    }>("/api/stock/receive", payload),
+
+  dispense: (payload: {
+    itemId: string;
+    locationId: string;
+    quantity: number;
+    reason?: string;
+  }) =>
+    api.post<{
+      data: { movements: StockMovementRecord[]; quantityDispensed: number };
+    }>("/api/stock/dispense", payload),
+
+  transfer: (payload: {
+    itemId: string;
+    fromLocationId: string;
+    toLocationId: string;
+    quantity: number;
+    reason?: string;
+  }) =>
+    api.post<{
+      data: { from: StockMovementRecord[]; to: StockMovementRecord };
+    }>("/api/stock/transfer", payload),
+
+  adjust: (payload: {
+    itemId: string;
+    locationId: string;
+    batchId: string;
+    newQuantity: number;
+    reason: string;
+  }) =>
+    api.post<{ data: StockMovementRecord }>("/api/stock/adjust", payload),
+
+  fefoPreview: (payload: {
+    itemId: string;
+    locationId: string;
+    quantity: number;
+  }) =>
+    api.post<{ data: { batch: StockBatchRecord | null } }>(
+      "/api/stock/fefo-preview",
+      payload
+    )
+};
