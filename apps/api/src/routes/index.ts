@@ -13,6 +13,7 @@ import {
 import { invoicesRouter, paymentsRouter } from "@cura/billing";
 import { drugsRouter, prescriptionsRouter } from "@cura/pharmacy";
 import { labOrdersRouter } from "@cura/lab";
+import { itemsRouter, locationsRouter, stockRouter } from "@cura/inventory";
 import { employeesRouter } from "@cura/hr";
 import { claimsRouter } from "@cura/hmo";
 import { evaluateRouter } from "@cura/cds";
@@ -24,7 +25,7 @@ router.get("/me", async (req, res) => {
   const ctx = req.user!;
   const user = await prisma.user.findFirst({
     where: { id: ctx.sub, tenantId: ctx.tenantId },
-      select: {
+    select: {
       id: true,
       email: true,
       fullName: true,
@@ -60,6 +61,9 @@ router.use("/payments", paymentsRouter);
 router.use("/drugs", drugsRouter);
 router.use("/prescriptions", prescriptionsRouter);
 router.use("/lab-orders", labOrdersRouter);
+router.use("/items", itemsRouter);
+router.use("/stock-locations", locationsRouter);
+router.use("/stock", stockRouter);
 router.use("/employees", employeesRouter);
 router.use("/claims", claimsRouter);
 router.use("/cds", evaluateRouter);

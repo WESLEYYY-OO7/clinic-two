@@ -1,26 +1,40 @@
 {
-    "devDependencies": {
-        "@types/cors": "^2.8.17",
-        "@types/express": "^4.17.21",
-        "@types/node": "^20.14.0",
-        "nodemon": "^3.1.14",
-        "tsx": "^4.19.0",
-        "typescript": "^5.5.0"
-    },
-    "main": "./src/index.ts",
-    "dependencies": {
-        "cors": "^2.8.5",
-        "dotenv": "^16.4.5",
-        "express": "^4.19.2",
-        "helmet": "^7.1.0"
-    },
-    "name": "@cura/api",
-    "private": true,
-    "scripts": {
-        "dev": "nodemon --watch src --ext ts --exec \"tsx src/index.ts\"",
-        "build": "tsc -p tsconfig.json",
-        "start": "node dist/index.js",
-        "lint": "tsc --noEmit"
-    },
-    "version": "0.1.0"
+  "name": "@cura/api",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "nodemon --watch src --ext ts --exec \"tsx src/index.ts\"",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cura/audit": "workspace:*",
+    "@cura/auth": "workspace:*",
+    "@cura/billing": "workspace:*",
+    "@cura/cds": "workspace:*",
+    "@cura/config": "workspace:*",
+    "@cura/db-client": "workspace:*",
+    "@cura/emr": "workspace:*",
+    "@cura/fhir-models": "workspace:*",
+    "@cura/hmo": "workspace:*",
+    "@cura/hr": "workspace:*",
+    "@cura/inventory": "workspace:*",
+    "@cura/lab": "workspace:*",
+    "@cura/pharmacy": "workspace:*",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.0",
+    "nodemon": "^3.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
 }
