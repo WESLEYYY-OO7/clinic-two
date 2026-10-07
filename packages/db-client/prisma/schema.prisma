@@ -410,20 +410,31 @@ model Employee {
 }
 
 model Claim {
-  id          String      @id @default(uuid())
-  tenantId    String
-  patientId   String
-  hmo         String
-  amount      Decimal     @db.Decimal(12, 2)
-  status      ClaimStatus @default(DRAFT)
-  submittedAt DateTime?
-  resolvedAt  DateTime?
-  notes       String?
-  createdAt   DateTime    @default(now())
+  id             String       @id @default(uuid())
+  tenantId       String
+  patientId      String
+  hmo            String                          // "Hygeia" | "RelianceHMO" | "AXAMansard" | ...
+  claimNumber    String?                          // HMO's reference (after submission)
+  hmoMemberId    String                           // The patient's HMO member number
+  planCode       String?                          // HMO's plan code
+  amount         Decimal      @db.Decimal(12, 2)  // Amount claimed
+  approvedAmount Decimal?     @db.Decimal(12, 2)  // Amount approved by HMO
+  status         ClaimStatus  @default(DRAFT)
+  diagnosisCodes Json?                            // ICD-10 codes
+  serviceDate    DateTime?
+  submittedAt    DateTime?
+  resolvedAt     DateTime?
+  rejectionReason String?
+  notes          String?
+  fhirResource   Json?                            // FHIR Claim resource
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId, status])
+  @@index([tenantId, patientId])
+  @@index([tenantId, hmo])
 }
 
 enum ClaimStatus {
@@ -431,6 +442,7 @@ enum ClaimStatus {
   SUBMITTED
   UNDER_REVIEW
   APPROVED
+  PARTIALLY_APPROVED
   DENIED
   PAID
 }
