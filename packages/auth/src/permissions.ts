@@ -105,14 +105,14 @@ export const can = (role: Role, permission: string): boolean => {
 };
 
 export const ROLE_MENU: Record<Role, string[]> = {
-  SUPER_ADMIN: ["dashboard", "patients", "appointments", "encounters", "inventory", "billing", "settings"],
-  CLINIC_ADMIN: ["dashboard", "patients", "appointments", "encounters", "inventory", "billing", "settings"],
-  DOCTOR: ["dashboard", "patients", "appointments", "encounters", "inventory"],
+  SUPER_ADMIN: ["dashboard", "patients", "appointments", "encounters", "claims", "inventory", "billing", "settings"],
+  CLINIC_ADMIN: ["dashboard", "patients", "appointments", "encounters", "claims", "inventory", "billing", "settings"],
+  DOCTOR: ["dashboard", "patients", "appointments", "encounters", "claims", "inventory"],
   NURSE: ["dashboard", "patients", "appointments", "encounters", "inventory"],
   PHARMACIST: ["dashboard", "patients", "inventory"],
   LAB_TECH: ["dashboard", "patients"],
   RECEPTIONIST: ["dashboard", "patients", "appointments"],
-  BILLING: ["dashboard", "patients", "billing"],
+  BILLING: ["dashboard", "patients", "claims", "billing"],
   HR: ["dashboard", "settings"]
 };
 
