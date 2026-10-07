@@ -284,9 +284,15 @@ model Appointment {
   startsAt        DateTime
   endsAt          DateTime
   status          AppointmentStatus @default(SCHEDULED)
+  visitStatus     VisitStatus       @default(SCHEDULED)
+  encounterId     String?
   reason          String?
   notes           String?
   reminderSentAt  DateTime?
+  checkedInAt     DateTime?
+  vitalsDoneAt    DateTime?
+  consultationAt  DateTime?
+  completedAt     DateTime?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
@@ -297,6 +303,7 @@ model Appointment {
   @@index([tenantId, patientId])
   @@index([tenantId, providerId])
   @@index([tenantId, status])
+  @@index([tenantId, visitStatus])
 }
 
 enum AppointmentStatus {
@@ -308,6 +315,17 @@ enum AppointmentStatus {
   CANCELLED
 }
 
+enum VisitStatus {
+  SCHEDULED
+  CHECKED_IN
+  VITALS_DONE
+  IN_CONSULTATION
+  RX_WRITTEN
+  DISPENSED
+  BILLED
+  DONE
+  CANCELLED
+}
 model Drug {
   id          String   @id @default(uuid())
   tenantId    String
