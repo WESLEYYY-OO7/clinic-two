@@ -15,9 +15,14 @@ import {
 interface Props {
   patientId: string;
   encounterId?: string;
+  canWrite?: boolean;
 }
 
-export function PrescriptionsTab({ patientId, encounterId }: Props) {
+export function PrescriptionsTab({
+  patientId,
+  encounterId,
+  canWrite = true
+}: Props) {
   const [catalogue, setCatalogue] = useState<DrugRecord[]>([]);
   const [list, setList] = useState<PrescriptionRecord[]>([]);
   const [drugSearch, setDrugSearch] = useState("");
@@ -85,6 +90,7 @@ export function PrescriptionsTab({ patientId, encounterId }: Props) {
   }, [drugSearch, catalogue]);
 
   const canPrescribe =
+    canWrite &&
     !!selectedDrug &&
     !!dose.trim() &&
     durationDays > 0 &&
@@ -140,192 +146,194 @@ export function PrescriptionsTab({ patientId, encounterId }: Props) {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      {/* Prescribe form */}
-      <div className="card">
-        <h2 className="text-lg font-semibold text-slate-900">
-          New Prescription
-        </h2>
+    <div className={`grid grid-cols-1 gap-4 ${canWrite ? "lg:grid-cols-2" : ""}`}>
+      {/* ── Prescribe form — only if canWrite ── */}
+      {canWrite && (
+        <div className="card">
+          <h2 className="text-lg font-semibold text-slate-900">
+            New Prescription
+          </h2>
 
-        <div className="mt-4">
-          <label className="label">Drug *</label>
-          <input
-            className="input"
-            placeholder="Type drug name (e.g. Augmentin, Paracetamol)…"
-            value={
-              selectedDrug
-                ? `${selectedDrug.name} — ${selectedDrug.genericName ?? ""}`
-                : drugSearch
-            }
-            onChange={(e) => {
-              setSelectedDrug(null);
-              setDrugSearch(e.target.value);
-            }}
-          />
-          {!selectedDrug && filteredCatalogue.length > 0 && (
-            <div className="mt-1 max-h-64 overflow-auto rounded-lg border bg-white shadow-lg">
-              {filteredCatalogue.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedDrug(d);
-                    setDrugSearch("");
-                  }}
-                  className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-50"
+          <div className="mt-4">
+            <label className="label">Drug *</label>
+            <input
+              className="input"
+              placeholder="Type drug name (e.g. Augmentin, Paracetamol)…"
+              value={
+                selectedDrug
+                  ? `${selectedDrug.name} — ${selectedDrug.genericName ?? ""}`
+                  : drugSearch
+              }
+              onChange={(e) => {
+                setSelectedDrug(null);
+                setDrugSearch(e.target.value);
+              }}
+            />
+            {!selectedDrug && filteredCatalogue.length > 0 && (
+              <div className="mt-1 max-h-64 overflow-auto rounded-lg border bg-white shadow-lg">
+                {filteredCatalogue.map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedDrug(d);
+                      setDrugSearch("");
+                    }}
+                    className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-50"
+                  >
+                    <span className="font-medium">{d.name}</span>
+                    {d.genericName && (
+                      <span className="muted ml-2 text-xs">{d.genericName}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {selectedDrug && (
+            <div className="mt-3 rounded-lg bg-slate-50 p-3 text-xs">
+              <p>
+                <strong>{selectedDrug.name}</strong>
+              </p>
+              {selectedDrug.genericName && (
+                <p className="muted">Generic: {selectedDrug.genericName}</p>
+              )}
+              {selectedDrug.strength && (
+                <p className="muted">Strength: {selectedDrug.strength}</p>
+              )}
+            </div>
+          )}
+
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <div>
+              <label className="label">Dose</label>
+              <input
+                className="input"
+                placeholder="500mg"
+                value={dose}
+                onChange={(e) => setDose(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="label">Frequency</label>
+              <select
+                className="input"
+                value={frequency}
+                onChange={(e) => setFrequency(e.target.value)}
+              >
+                <option value="OD">OD (once)</option>
+                <option value="BD">BD (twice)</option>
+                <option value="TID">TID (thrice)</option>
+                <option value="QID">QID (four)</option>
+                <option value="PRN">PRN (as needed)</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">Days</label>
+              <input
+                type="number"
+                className="input"
+                min={1}
+                value={durationDays}
+                onChange={(e) => setDurationDays(Number(e.target.value) || 1)}
+              />
+            </div>
+          </div>
+
+          {loading && selectedDrug && (
+            <p className="muted mt-4 text-xs">Running clinical checks…</p>
+          )}
+
+          {!loading && alerts.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {alerts.map((a, i) => (
+                <div
+                  key={i}
+                  className={`rounded-lg border p-3 text-sm ${sevColor(a.severity)}`}
                 >
-                  <span className="font-medium">{d.name}</span>
-                  {d.genericName && (
-                    <span className="muted ml-2 text-xs">{d.genericName}</span>
-                  )}
-                </button>
+                  <p className="text-xs font-semibold uppercase tracking-wide">
+                    {a.severity === "critical"
+                      ? "🚫 Critical — Blocked"
+                      : a.severity === "warning"
+                      ? "⚠️ Warning"
+                      : "ℹ️ Info"}
+                  </p>
+                  <p className="mt-1">{a.message}</p>
+                  <p className="muted mt-1 text-xs">Source: {a.source}</p>
+                </div>
               ))}
             </div>
           )}
-        </div>
 
-        {selectedDrug && (
-          <div className="mt-3 rounded-lg bg-slate-50 p-3 text-xs">
-            <p>
-              <strong>{selectedDrug.name}</strong>
-            </p>
-            {selectedDrug.genericName && (
-              <p className="muted">Generic: {selectedDrug.genericName}</p>
-            )}
-            {selectedDrug.strength && (
-              <p className="muted">Strength: {selectedDrug.strength}</p>
-            )}
-          </div>
-        )}
+          {blocking && (
+            <div className="mt-4">
+              <label className="label text-red-700">
+                Clinical justification (required to override) *
+              </label>
+              <textarea
+                className="input"
+                rows={3}
+                placeholder="Explain why you're overriding this alert…"
+                value={overrideReason}
+                onChange={(e) => setOverrideReason(e.target.value)}
+              />
+              <p className="muted mt-1 text-xs">
+                {overrideReason.trim().length < 10
+                  ? `At least 10 characters (${overrideReason.trim().length}/10)`
+                  : "✓ Justification logged to audit trail"}
+              </p>
+            </div>
+          )}
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <div>
-            <label className="label">Dose</label>
-            <input
-              className="input"
-              placeholder="500mg"
-              value={dose}
-              onChange={(e) => setDose(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="label">Frequency</label>
-            <select
-              className="input"
-              value={frequency}
-              onChange={(e) => setFrequency(e.target.value)}
+          {toast && (
+            <div
+              className={`mt-4 rounded-lg p-3 text-sm ${
+                toast.kind === "success"
+                  ? "bg-green-50 text-green-800"
+                  : "bg-red-50 text-red-800"
+              }`}
             >
-              <option value="OD">OD (once)</option>
-              <option value="BD">BD (twice)</option>
-              <option value="TID">TID (thrice)</option>
-              <option value="QID">QID (four)</option>
-              <option value="PRN">PRN (as needed)</option>
-            </select>
-          </div>
-          <div>
-            <label className="label">Days</label>
-            <input
-              type="number"
-              className="input"
-              min={1}
-              value={durationDays}
-              onChange={(e) => setDurationDays(Number(e.target.value) || 1)}
-            />
-          </div>
-        </div>
+              {toast.text}
+            </div>
+          )}
 
-        {loading && selectedDrug && (
-          <p className="muted mt-4 text-xs">Running clinical checks…</p>
-        )}
-
-        {!loading && alerts.length > 0 && (
-          <div className="mt-4 space-y-2">
-            {alerts.map((a, i) => (
-              <div
-                key={i}
-                className={`rounded-lg border p-3 text-sm ${sevColor(a.severity)}`}
-              >
-                <p className="text-xs font-semibold uppercase tracking-wide">
-                  {a.severity === "critical"
-                    ? "🚫 Critical — Blocked"
-                    : a.severity === "warning"
-                    ? "⚠️ Warning"
-                    : "ℹ️ Info"}
-                </p>
-                <p className="mt-1">{a.message}</p>
-                <p className="muted mt-1 text-xs">Source: {a.source}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {blocking && (
-          <div className="mt-4">
-            <label className="label text-red-700">
-              Clinical justification (required to override) *
-            </label>
-            <textarea
-              className="input"
-              rows={3}
-              placeholder="Explain why you're overriding this alert…"
-              value={overrideReason}
-              onChange={(e) => setOverrideReason(e.target.value)}
-            />
-            <p className="muted mt-1 text-xs">
-              {overrideReason.trim().length < 10
-                ? `At least 10 characters (${overrideReason.trim().length}/10)`
-                : "✓ Justification logged to audit trail"}
-            </p>
-          </div>
-        )}
-
-        {toast && (
-          <div
-            className={`mt-4 rounded-lg p-3 text-sm ${
-              toast.kind === "success"
-                ? "bg-green-50 text-green-800"
-                : "bg-red-50 text-red-800"
-            }`}
-          >
-            {toast.text}
-          </div>
-        )}
-
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            className={`btn ${
-              blocking ? "bg-red-600 text-white hover:bg-red-700" : "btn-primary"
-            }`}
-            disabled={!canPrescribe || saving}
-            onClick={handlePrescribe}
-          >
-            {saving
-              ? "Prescribing…"
-              : blocking
-              ? "Override & Prescribe"
-              : "Prescribe"}
-          </button>
-          {selectedDrug && (
+          <div className="mt-4 flex gap-2">
             <button
               type="button"
-              className="btn btn-secondary"
-              onClick={() => {
-                setSelectedDrug(null);
-                setDrugSearch("");
-                setAlerts([]);
-                setBlocking(false);
-                setOverrideReason("");
-              }}
+              className={`btn ${
+                blocking ? "bg-red-600 text-white hover:bg-red-700" : "btn-primary"
+              }`}
+              disabled={!canPrescribe || saving}
+              onClick={handlePrescribe}
             >
-              Clear
+              {saving
+                ? "Prescribing…"
+                : blocking
+                ? "Override & Prescribe"
+                : "Prescribe"}
             </button>
-          )}
+            {selectedDrug && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setSelectedDrug(null);
+                  setDrugSearch("");
+                  setAlerts([]);
+                  setBlocking(false);
+                  setOverrideReason("");
+                }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Existing prescriptions */}
-      <div className="card">
+      {/* ── List of existing prescriptions — always visible ── */}
+      <div className={`card ${!canWrite ? "lg:col-span-2" : ""}`}>
         <h2 className="text-lg font-semibold text-slate-900">
           Prescriptions ({list.length})
         </h2>
@@ -374,7 +382,7 @@ export function PrescriptionsTab({ patientId, encounterId }: Props) {
         )}
       </div>
 
-      {/* Dispense modal */}
+      {/* ── Dispense modal ── */}
       {dispenseFor && (
         <DispenseModal
           prescription={dispenseFor}
@@ -420,11 +428,9 @@ function DispenseModal({
         setItems(i.data);
         setLocations(l.data);
 
-        // Default location: first PHARMACY
         const pharmacy = l.data.find((x) => x.type === "PHARMACY");
         if (pharmacy) setSelectedLocation(pharmacy.id);
 
-        // Auto-match item by drug name
         const drugName = prescription.drug.name.toLowerCase();
         const match =
           i.data.find((x) => x.name.toLowerCase() === drugName) ??
@@ -457,7 +463,7 @@ function DispenseModal({
     setDispensing(true);
     setError("");
     try {
-      await fetch(
+      const res = await fetch(
         `${
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
         }/api/prescriptions/${prescription.id}/dispense`,
@@ -473,13 +479,11 @@ function DispenseModal({
             quantity
           })
         }
-      ).then(async (res) => {
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body.error || `Failed (${res.status})`);
-        }
-        return res.json();
-      });
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Failed (${res.status})`);
+      }
       onDispensed();
     } catch (e: any) {
       setError(e?.message || "Dispense failed");
@@ -504,7 +508,6 @@ function DispenseModal({
         ) : (
           <>
             <div className="mt-4 space-y-4">
-              {/* Item */}
               <div>
                 <label className="label">Inventory item *</label>
                 <input
@@ -543,7 +546,6 @@ function DispenseModal({
                 )}
               </div>
 
-              {/* Location */}
               <div>
                 <label className="label">From location *</label>
                 <select
@@ -560,7 +562,6 @@ function DispenseModal({
                 </select>
               </div>
 
-              {/* Quantity */}
               <div>
                 <label className="label">Quantity *</label>
                 <input
@@ -596,7 +597,11 @@ function DispenseModal({
               >
                 {dispensing ? "Dispensing…" : "Dispense"}
               </button>
-              <button type="button" className="btn btn-secondary" onClick={onClose}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={onClose}
+              >
                 Cancel
               </button>
             </div>

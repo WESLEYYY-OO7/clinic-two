@@ -83,5 +83,60 @@ router.patch("/:id/void", async (req, res) => {
 
   res.json({ data: invoice });
 });
+// ── GET /api/invoices/stats — aggregated billing stats for dashboard ──
+router.get("/stats", async (req, res) => {
+  const ctx = req.user!;
+  if (!can(ctx.role, "invoice:read")) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  const { prisma } = await import("@cura/db-client");
+
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  // Invoices in last 6 months
+  const invoices = await prisma.invoice.findMany({
+    where: {
+      tenantId: ctx.tenantId,
+      createdAt: { gte: sixMonthsAgo }
+    },
+    select: { total: true, balance: true, createdAt: true, status: true }
+  });
+
+  // Group by month
+  const monthly: Record<string, { revenue: number; outstanding: number }> = {};
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    monthly[key] = { revenue: 0, outstanding: 0 };
+  }
+
+  for (const inv of invoices) {
+    const d = new Date(inv.createdAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    if (monthly[key]) {
+      monthly[key].revenue += Number(inv.total);
+      monthly[key].outstanding += Number(inv.balance);
+    }
+  }
+
+  const monthlyArray = Object.entries(monthly).map(([month, data]) => ({
+    month,
+    revenue: Math.round(data.revenue),
+    outstanding: Math.round(data.outstanding)
+  }));
+
+  res.json({
+    data: {
+      monthly: monthlyArray,
+      totals: {
+        revenue: invoices.reduce((s, i) => s + Number(i.total), 0),
+        outstanding: invoices.reduce((s, i) => s + Number(i.balance), 0)
+      }
+    }
+  });
+});
 
 export default router;

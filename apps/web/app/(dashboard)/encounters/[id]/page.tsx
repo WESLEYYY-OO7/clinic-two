@@ -7,6 +7,7 @@ import {
   vitals as vitalsApi,
   notes as notesApi,
   diagnoses as diagApi,
+  auth,
   api,
   type EncounterRecord,
   type VitalRecord,
@@ -39,6 +40,7 @@ export default function EncounterDetailPage() {
   const [diagnoses, setDiagnoses] = useState<any[]>([]);
   const [tab, setTab] = useState<Tab>("vitals");
   const [error, setError] = useState("");
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   const [vitalForm, setVitalForm] = useState({
     temperatureC: "",
@@ -58,6 +60,17 @@ export default function EncounterDetailPage() {
     display: "",
     certainty: "provisional"
   });
+
+  /**
+   * Permission check — reads the current user's permission list.
+   * CLINIC_ADMIN no longer has "*", so this reflects the tightened matrix.
+   */
+  const can = (perm: string): boolean => {
+    if (permissions.includes("*")) return true;
+    if (permissions.includes(perm)) return true;
+    const [resource] = perm.split(":");
+    return permissions.includes(`${resource}:*`);
+  };
 
   const refresh = async () => {
     if (!id) return;
@@ -82,6 +95,10 @@ export default function EncounterDetailPage() {
 
   useEffect(() => {
     refresh();
+    auth
+      .me()
+      .then((res) => setPermissions(res.data.permissions))
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -162,7 +179,7 @@ export default function EncounterDetailPage() {
   if (error && !encounter) {
     return (
       <div className="card">
-        <p className="text-red-700">{error}</p>
+        <p className="text-brand-700">{error}</p>
         <button className="btn btn-secondary mt-4" onClick={() => router.back()}>
           Go back
         </button>
@@ -173,6 +190,11 @@ export default function EncounterDetailPage() {
   if (!encounter || !patient) return <p className="muted">Loading…</p>;
 
   const isFinished = encounter.status === "FINISHED";
+  const canWriteVitals = can("vitals:write") && !isFinished;
+  const canWriteNotes = can("notes:write") && !isFinished;
+  const canWriteDiagnosis = can("diagnosis:write") && !isFinished;
+  const canFinish = can("encounter:write") && !isFinished;
+
   const tabs: Tab[] = ["vitals", "notes", "diagnoses", "prescriptions", "lab", "fhir"];
 
   return (
@@ -204,7 +226,7 @@ export default function EncounterDetailPage() {
           )}
         </div>
         <div className="flex gap-3">
-          {!isFinished && (
+          {canFinish && (
             <button className="btn btn-primary" onClick={finishEncounter}>
               Finish Encounter
             </button>
@@ -239,67 +261,161 @@ export default function EncounterDetailPage() {
 
       {tab === "vitals" && (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {!isFinished && (
+          {canWriteVitals && (
             <form onSubmit={submitVitals} className="card">
-              <h2 className="text-lg font-semibold text-slate-900">Record Vitals</h2>
+              <h2 className="text-lg font-semibold text-slate-900">
+                Record Vitals
+              </h2>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div>
                   <label className="label">Temp (°C)</label>
-                  <input type="number" step="0.1" className="input" value={vitalForm.temperatureC} onChange={(e) => setVitalForm({ ...vitalForm, temperatureC: e.target.value })} />
+                  <input
+                    type="number"
+                    step="0.1"
+                    className="input"
+                    value={vitalForm.temperatureC}
+                    onChange={(e) =>
+                      setVitalForm({
+                        ...vitalForm,
+                        temperatureC: e.target.value
+                      })
+                    }
+                  />
                 </div>
                 <div>
                   <label className="label">Heart rate (bpm)</label>
-                  <input type="number" className="input" value={vitalForm.heartRateBpm} onChange={(e) => setVitalForm({ ...vitalForm, heartRateBpm: e.target.value })} />
+                  <input
+                    type="number"
+                    className="input"
+                    value={vitalForm.heartRateBpm}
+                    onChange={(e) =>
+                      setVitalForm({
+                        ...vitalForm,
+                        heartRateBpm: e.target.value
+                      })
+                    }
+                  />
                 </div>
                 <div>
                   <label className="label">Resp rate (/min)</label>
-                  <input type="number" className="input" value={vitalForm.respRateBpm} onChange={(e) => setVitalForm({ ...vitalForm, respRateBpm: e.target.value })} />
+                  <input
+                    type="number"
+                    className="input"
+                    value={vitalForm.respRateBpm}
+                    onChange={(e) =>
+                      setVitalForm({
+                        ...vitalForm,
+                        respRateBpm: e.target.value
+                      })
+                    }
+                  />
                 </div>
                 <div>
                   <label className="label">SpO₂ (%)</label>
-                  <input type="number" className="input" value={vitalForm.spo2} onChange={(e) => setVitalForm({ ...vitalForm, spo2: e.target.value })} />
+                  <input
+                    type="number"
+                    className="input"
+                    value={vitalForm.spo2}
+                    onChange={(e) =>
+                      setVitalForm({ ...vitalForm, spo2: e.target.value })
+                    }
+                  />
                 </div>
                 <div>
                   <label className="label">BP systolic</label>
-                  <input type="number" className="input" value={vitalForm.bpSystolic} onChange={(e) => setVitalForm({ ...vitalForm, bpSystolic: e.target.value })} />
+                  <input
+                    type="number"
+                    className="input"
+                    value={vitalForm.bpSystolic}
+                    onChange={(e) =>
+                      setVitalForm({
+                        ...vitalForm,
+                        bpSystolic: e.target.value
+                      })
+                    }
+                  />
                 </div>
                 <div>
                   <label className="label">BP diastolic</label>
-                  <input type="number" className="input" value={vitalForm.bpDiastolic} onChange={(e) => setVitalForm({ ...vitalForm, bpDiastolic: e.target.value })} />
+                  <input
+                    type="number"
+                    className="input"
+                    value={vitalForm.bpDiastolic}
+                    onChange={(e) =>
+                      setVitalForm({
+                        ...vitalForm,
+                        bpDiastolic: e.target.value
+                      })
+                    }
+                  />
                 </div>
                 <div>
                   <label className="label">Weight (kg)</label>
-                  <input type="number" step="0.1" className="input" value={vitalForm.weightKg} onChange={(e) => setVitalForm({ ...vitalForm, weightKg: e.target.value })} />
+                  <input
+                    type="number"
+                    step="0.1"
+                    className="input"
+                    value={vitalForm.weightKg}
+                    onChange={(e) =>
+                      setVitalForm({ ...vitalForm, weightKg: e.target.value })
+                    }
+                  />
                 </div>
                 <div>
                   <label className="label">Height (cm)</label>
-                  <input type="number" step="0.1" className="input" value={vitalForm.heightCm} onChange={(e) => setVitalForm({ ...vitalForm, heightCm: e.target.value })} />
+                  <input
+                    type="number"
+                    step="0.1"
+                    className="input"
+                    value={vitalForm.heightCm}
+                    onChange={(e) =>
+                      setVitalForm({ ...vitalForm, heightCm: e.target.value })
+                    }
+                  />
                 </div>
               </div>
-              <button type="submit" className="btn btn-primary mt-4">Save vitals</button>
+              <button type="submit" className="btn btn-primary mt-4">
+                Save vitals
+              </button>
             </form>
           )}
 
-          <div className="card">
+          <div className={`card ${!canWriteVitals ? "lg:col-span-2" : ""}`}>
             <h2 className="text-lg font-semibold text-slate-900">
               Vital History ({vitals.length})
             </h2>
             {vitals.length === 0 ? (
-              <p className="muted mt-4">No vitals recorded yet.</p>
+              <p className="muted mt-4">
+                {canWriteVitals
+                  ? "No vitals recorded yet."
+                  : "No vitals recorded for this encounter."}
+              </p>
             ) : (
               <div className="mt-4 space-y-3">
                 {vitals.map((v) => (
                   <div key={v.id} className="border-l-2 border-brand-500 pl-3">
-                    <p className="muted text-xs">{new Date(v.recordedAt).toLocaleString()}</p>
+                    <p className="muted text-xs">
+                      {new Date(v.recordedAt).toLocaleString()}
+                    </p>
                     <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                       {v.temperatureC != null && <span>🌡️ {v.temperatureC}°C</span>}
-                      {v.heartRateBpm != null && <span>❤️ {v.heartRateBpm} bpm</span>}
+                      {v.heartRateBpm != null && (
+                        <span>❤️ {v.heartRateBpm} bpm</span>
+                      )}
                       {v.respRateBpm != null && <span>🫁 {v.respRateBpm}/min</span>}
                       {v.spo2 != null && <span>💧 SpO₂ {v.spo2}%</span>}
-                      {v.bpSystolic != null && v.bpDiastolic != null && <span>🩸 {v.bpSystolic}/{v.bpDiastolic}</span>}
+                      {v.bpSystolic != null && v.bpDiastolic != null && (
+                        <span>
+                          🩸 {v.bpSystolic}/{v.bpDiastolic}
+                        </span>
+                      )}
                       {v.weightKg != null && <span>⚖️ {v.weightKg} kg</span>}
                       {v.heightCm != null && <span>📏 {v.heightCm} cm</span>}
-                      {v.bmi != null && <span className="font-medium">BMI {v.bmi.toFixed(1)}</span>}
+                      {v.bmi != null && (
+                        <span className="font-medium">
+                          BMI {v.bmi.toFixed(1)}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -311,7 +427,7 @@ export default function EncounterDetailPage() {
 
       {tab === "notes" && (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {!isFinished && (
+          {canWriteNotes && (
             <form onSubmit={submitNote} className="card">
               <h2 className="text-lg font-semibold text-slate-900">New Note</h2>
               <textarea
@@ -321,13 +437,17 @@ export default function EncounterDetailPage() {
                 onChange={(e) => setNoteContent(e.target.value)}
                 placeholder="S: Subjective&#10;O: Objective&#10;A: Assessment&#10;P: Plan"
               />
-              <button type="submit" className="btn btn-primary mt-4" disabled={!noteContent.trim()}>
+              <button
+                type="submit"
+                className="btn btn-primary mt-4"
+                disabled={!noteContent.trim()}
+              >
                 Save note
               </button>
             </form>
           )}
 
-          <div className="card">
+          <div className={`card ${!canWriteNotes ? "lg:col-span-2" : ""}`}>
             <h2 className="text-lg font-semibold text-slate-900">
               Notes ({notes.length})
             </h2>
@@ -353,32 +473,58 @@ export default function EncounterDetailPage() {
 
       {tab === "diagnoses" && (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {!isFinished && (
+          {canWriteDiagnosis && (
             <form onSubmit={submitDiagnosis} className="card">
-              <h2 className="text-lg font-semibold text-slate-900">Add Diagnosis</h2>
+              <h2 className="text-lg font-semibold text-slate-900">
+                Add Diagnosis
+              </h2>
               <div className="mt-4 space-y-3">
                 <div>
                   <label className="label">ICD-10 code *</label>
-                  <input className="input" value={diagForm.code} onChange={(e) => setDiagForm({ ...diagForm, code: e.target.value })} placeholder="e.g. J06.9" required />
+                  <input
+                    className="input"
+                    value={diagForm.code}
+                    onChange={(e) =>
+                      setDiagForm({ ...diagForm, code: e.target.value })
+                    }
+                    placeholder="e.g. J06.9"
+                    required
+                  />
                 </div>
                 <div>
                   <label className="label">Display *</label>
-                  <input className="input" value={diagForm.display} onChange={(e) => setDiagForm({ ...diagForm, display: e.target.value })} placeholder="e.g. Acute upper respiratory infection" required />
+                  <input
+                    className="input"
+                    value={diagForm.display}
+                    onChange={(e) =>
+                      setDiagForm({ ...diagForm, display: e.target.value })
+                    }
+                    placeholder="e.g. Acute upper respiratory infection"
+                    required
+                  />
                 </div>
                 <div>
                   <label className="label">Certainty</label>
-                  <select className="input" value={diagForm.certainty} onChange={(e) => setDiagForm({ ...diagForm, certainty: e.target.value })}>
+                  <select
+                    className="input"
+                    value={diagForm.certainty}
+                    onChange={(e) =>
+                      setDiagForm({ ...diagForm, certainty: e.target.value })
+                    }
+                  >
                     <option value="provisional">Provisional</option>
                     <option value="confirmed">Confirmed</option>
                     <option value="differential">Differential</option>
                   </select>
                 </div>
               </div>
-              <button type="submit" className="btn btn-primary mt-4">Add diagnosis</button>
+              <button type="submit" className="btn btn-primary mt-4">
+                Add diagnosis
+              </button>
             </form>
           )}
 
-          <div className="card">
+          <div className={`card ${!canWriteDiagnosis ? "lg:col-span-2" : ""}`}>
             <h2 className="text-lg font-semibold text-slate-900">
               Diagnoses ({diagnoses.length})
             </h2>
@@ -387,11 +533,20 @@ export default function EncounterDetailPage() {
             ) : (
               <div className="mt-4 space-y-2">
                 {diagnoses.map((d) => (
-                  <div key={d.id} className="flex items-start gap-3 rounded-lg bg-slate-50 p-3">
-                    <span className="rounded bg-white px-2 py-1 font-mono text-xs">{d.code}</span>
+                  <div
+                    key={d.id}
+                    className="flex items-start gap-3 rounded-lg bg-slate-50 p-3"
+                  >
+                    <span className="rounded bg-white px-2 py-1 font-mono text-xs">
+                      {d.code}
+                    </span>
                     <div>
-                      <p className="text-sm font-medium text-slate-900">{d.display}</p>
-                      {d.certainty && <p className="muted text-xs">{d.certainty}</p>}
+                      <p className="text-sm font-medium text-slate-900">
+                        {d.display}
+                      </p>
+                      {d.certainty && (
+                        <p className="muted text-xs">{d.certainty}</p>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -402,7 +557,11 @@ export default function EncounterDetailPage() {
       )}
 
       {tab === "prescriptions" && (
-        <PrescriptionsTab patientId={patient.id} encounterId={encounter.id} />
+        <PrescriptionsTab
+          patientId={patient.id}
+          encounterId={encounter.id}
+          canWrite={can("prescription:write")}
+        />
       )}
 
       {tab === "lab" && (

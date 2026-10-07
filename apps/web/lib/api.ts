@@ -776,3 +776,46 @@ export const claims = {
     }
   ) => api.patch<{ data: ClaimRecord }>(`/api/claims/${id}/status`, payload)
 };
+// ── Dashboard Stats ──
+export interface BillingStats {
+  monthly: { month: string; revenue: number; outstanding: number }[];
+  totals: { revenue: number; outstanding: number };
+}
+
+export interface EncounterStats {
+  topDiagnoses: { code: string; display: string; count: number }[];
+  monthly: { month: string; count: number }[];
+}
+
+export interface ClaimStats {
+  byStatus: { status: string; count: number; amount: number }[];
+  totals: { count: number; approvedAmount: number };
+}
+
+export const dashboard = {
+  billing: () => api.get<{ data: BillingStats }>("/api/invoices/stats"),
+  encounters: () =>
+    api.get<{ data: EncounterStats }>("/api/encounters/stats"),
+  claims: () =>
+    api
+      .list
+      ? null
+      : null, // claims stats pulled from claims.list() on the client
+  lowStock: () =>
+    api
+      .get<{
+        data: {
+          id: string;
+          code: string;
+          name: string;
+          total: number;
+          reorderLevel: number;
+        }[];
+      }>("/api/stock/levels")
+      .then((res) => ({
+        data: res.data
+          .filter((i) => i.total < i.reorderLevel)
+          .sort((a, b) => a.total - b.total)
+          .slice(0, 5)
+      }))
+};

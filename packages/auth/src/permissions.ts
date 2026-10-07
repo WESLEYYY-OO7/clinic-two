@@ -11,8 +11,88 @@ export type Role =
   | "HR";
 
 export const PERMISSIONS: Record<Role, string[]> = {
-  SUPER_ADMIN: ["*"],
-  CLINIC_ADMIN: ["*"],
+ SUPER_ADMIN: ["*"],  // stays wildcard — this is for the SaaS operator
+CLINIC_ADMIN: [
+  "patient:read:demographics",
+  "patient:read:clinical",
+  "patient:read:financial",
+  "patient:write:demographics",
+
+  "user:*",
+  "employee:*",
+  "payroll:*",
+
+  "appointment:read",
+  "appointment:write",
+
+  "invoice:read",
+  "invoice:write",
+  "payment:read",
+
+  "inventory:*",
+  "drug:read",
+  "drug:write",
+
+  "claim:read",
+  "claim:write",
+
+  "encounter:read",
+  "vitals:read",
+  "notes:read",
+  "diagnosis:read",
+  "prescription:read",
+  "order:read",
+  "lab:read",
+  "lab:result:read",
+
+  "drug:read"
+],
+CLINIC_ADMIN: [
+  // Patient view (demographics + financial for oversight)
+  "patient:read:demographics",
+  "patient:read:clinical",       // can VIEW but not edit
+  "patient:read:financial",
+
+  // Staff & HR
+  "user:*",
+  "employee:*",
+  "payroll:*",
+
+  // Appointments (view oversight)
+  "appointment:read",
+  "appointment:write",           // can book for VIPs
+
+  // Billing (oversight + corrections)
+  "invoice:read",
+  "invoice:write",
+  "payment:read",
+
+  // HMO Claims
+  "claim:read",
+  "claim:write",
+
+  // Inventory (setup + receive)
+  "inventory:*",
+
+  // Master data setup
+  "drug:read",
+  "drug:write",
+  "lab:read",
+  "lab:write",
+
+  // Encounter oversight
+  "encounter:read",              // can VIEW but not write
+  "vitals:read",
+  "notes:read",
+  "diagnosis:read",
+  "prescription:read",
+  "order:read",
+  "lab:result:read",
+
+  // Billing
+  "invoice:read",
+  "payment:read"
+],
 
   DOCTOR: [
     "patient:read:demographics",

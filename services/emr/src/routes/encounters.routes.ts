@@ -46,7 +46,69 @@ router.get("/", async (req, res) => {
   const encounters = await listEncounters(ctx.tenantId, patientId);
   res.json({ data: encounters });
 });
+// ── GET /api/encounters/stats — diagnoses stats for dashboard ──
+router.get("/stats", async (req, res) => {
+  const ctx = req.user!;
+  if (!can(ctx.role, "encounter:read")) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
 
+  const { prisma } = await import("@cura/db-client");
+
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  // Top diagnoses
+  const diagnoses = await prisma.diagnosis.groupBy({
+    by: ["code", "display"],
+    where: {
+      tenantId: ctx.tenantId,
+      createdAt: { gte: sixMonthsAgo }
+    },
+    _count: { code: true },
+    orderBy: { _count: { code: "desc" } },
+    take: 10
+  });
+
+  // Monthly encounter counts
+  const encounters = await prisma.encounter.findMany({
+    where: {
+      tenantId: ctx.tenantId,
+      startedAt: { gte: sixMonthsAgo }
+    },
+    select: { startedAt: true }
+  });
+
+  const monthly: Record<string, number> = {};
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    monthly[key] = 0;
+  }
+
+  for (const e of encounters) {
+    const d = new Date(e.startedAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    if (monthly[key] !== undefined) monthly[key]++;
+  }
+
+  const monthlyArray = Object.entries(monthly).map(([month, count]) => ({
+    month,
+    count
+  }));
+
+  res.json({
+    data: {
+      topDiagnoses: diagnoses.map((d) => ({
+        code: d.code,
+        display: d.display,
+        count: d._count.code
+      })),
+      monthly: monthlyArray
+    }
+  });
+});
 // GET /api/encounters/:id — single encounter
 router.get("/:id", async (req, res) => {
   const ctx = req.user!;

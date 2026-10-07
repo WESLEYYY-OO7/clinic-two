@@ -1,14 +1,30 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { encounters as encApi, type EncounterRecord } from "@/lib/api";
+import { auth, encounters as encApi, type EncounterRecord } from "@/lib/api";
 
 export default function EncountersPage() {
   const [items, setItems] = useState<EncounterRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [permissions, setPermissions] = useState<string[]>([]);
+
+  // Helper: does the current user have a permission?
+  const can = (perm: string): boolean => {
+    if (permissions.includes("*")) return true;
+    if (permissions.includes(perm)) return true;
+    const [resource] = perm.split(":");
+    return permissions.includes(`${resource}:*`);
+  };
 
   useEffect(() => {
+    // Fetch permissions first (needed for button visibility)
+    auth
+      .me()
+      .then((res) => setPermissions(res.data.permissions))
+      .catch(() => setPermissions([]));
+
+    // Fetch encounters
     encApi
       .list()
       .then((res) => setItems(res.data))
@@ -16,20 +32,24 @@ export default function EncountersPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const canWrite = can("encounter:write");
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Encounters</h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Encounters</h1>
           <p className="muted mt-1">{items.length} total</p>
         </div>
-        <Link href="/encounters/new" className="btn btn-primary">
-          + New Encounter
-        </Link>
+        {canWrite && (
+          <Link href="/encounters/new" className="btn btn-primary">
+            + New Encounter
+          </Link>
+        )}
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+        <div className="mb-4 rounded-lg border border-brand-200 bg-brand-50 p-3 text-sm text-brand-800">
           {error}
         </div>
       )}
@@ -60,12 +80,12 @@ export default function EncountersPage() {
                   <td className="px-4 py-3">{e.reason ?? "—"}</td>
                   <td className="px-4 py-3">
                     <span
-                      className={`inline-block rounded-full px-2 py-0.5 text-xs ${
+                      className={`badge ${
                         e.status === "FINISHED"
-                          ? "bg-green-100 text-green-700"
+                          ? "badge-green"
                           : e.status === "IN_PROGRESS"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-slate-100 text-slate-700"
+                          ? "badge-blue"
+                          : "badge-slate"
                       }`}
                     >
                       {e.status}
@@ -74,7 +94,7 @@ export default function EncountersPage() {
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/encounters/${e.id}`}
-                      className="text-blue-600 font-medium"
+                      className="font-medium text-accent-600 hover:underline"
                     >
                       Open →
                     </Link>
