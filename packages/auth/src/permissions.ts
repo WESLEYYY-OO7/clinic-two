@@ -21,8 +21,12 @@ export const PERMISSIONS: Record<Role, string[]> = {
     "patient:write:clinical",
     "encounter:*",
     "vitals:write",
-    "order:*",
+    "notes:write",
+    "diagnosis:write",
     "prescription:write",
+    "prescription:read",
+    "prescription:dispense",  // doctors can dispense in emergencies
+    "order:*",
     "appointment:*",
     "invoice:read",
     "lab:read",
@@ -36,22 +40,18 @@ export const PERMISSIONS: Record<Role, string[]> = {
     "patient:read:demographics",
     "patient:read:clinical",
     "patient:write:demographics",
-    "patient:write:clinical",
     "encounter:read",
     "vitals:write",
+    "notes:write",
     "order:read",
-    "order:result:read",
     "appointment:read",
-    "appointment:write",
     "lab:read",
-    "lab:write",
-    "drug:read",
     "inventory:read"
   ],
 
   PHARMACIST: [
     "patient:read:demographics",
-    "patient:read:clinical",       // filtered on server to prescriptions only
+    "patient:read:clinical",     // filtered to prescriptions + allergies on server
     "prescription:read",
     "prescription:dispense",
     "drug:read",
@@ -60,8 +60,7 @@ export const PERMISSIONS: Record<Role, string[]> = {
   ],
 
   LAB_TECH: [
-    "patient:read:demographics",
-    "patient:read:clinical",       // filtered on server to lab only
+    "patient:read:demographics",  // filtered to name + MRN + DOB + gender on server
     "order:read",
     "order:result:write",
     "lab:read",
@@ -81,7 +80,10 @@ export const PERMISSIONS: Record<Role, string[]> = {
     "payment:*"
   ],
 
-  HR: []
+  HR: [
+    "employee:*",
+    "payroll:*"
+  ]
 };
 
 export const can = (role: Role, permission: string): boolean => {
@@ -89,9 +91,14 @@ export const can = (role: Role, permission: string): boolean => {
   if (perms.includes("*")) return true;
   if (perms.includes(permission)) return true;
 
-  // Wildcard fallback: "patient:*" grants any "patient:xxx"
   const [resource] = permission.split(":");
   if (perms.includes(`${resource}:*`)) return true;
+
+  // Handle three-tier: "patient:read" should match "patient:read:clinical"
+  const parts = permission.split(":");
+  if (parts.length === 3) {
+    if (perms.includes(`${parts[0]}:${parts[1]}`)) return true;
+  }
 
   return false;
 };
@@ -132,5 +139,5 @@ export const PATIENT_FIELDS = {
   clinical: [
     "allergies"
   ],
-  financial: [] // no direct fields — financial data lives in invoices
+  financial: []
 } as const;

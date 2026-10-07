@@ -11,19 +11,26 @@ import {
 const router = Router();
 
 /**
- * Filter a patient record to only include fields the caller has permission for.
+ * Filter patient fields by role tier.
+ * LAB_TECH gets an even narrower view (name + MRN + DOB + gender only).
  */
 const filterPatient = (patient: any, role: string) => {
   const allowed = new Set<string>();
 
-  if (can(role as any, "patient:read:demographics")) {
-    PATIENT_FIELDS.demographics.forEach((f) => allowed.add(f));
+  // Lab tech: minimal fields only
+  if (role === "LAB_TECH") {
+    ["id", "mrn", "firstName", "lastName", "dateOfBirth", "gender"].forEach(
+      (f) => allowed.add(f)
+    );
+  } else {
+    if (can(role as any, "patient:read:demographics")) {
+      PATIENT_FIELDS.demographics.forEach((f) => allowed.add(f));
+    }
+    if (can(role as any, "patient:read:clinical")) {
+      PATIENT_FIELDS.clinical.forEach((f) => allowed.add(f));
+      allowed.add("fhirResource");
+    }
   }
-  if (can(role as any, "patient:read:clinical")) {
-    PATIENT_FIELDS.clinical.forEach((f) => allowed.add(f));
-    allowed.add("fhirResource");
-  }
-  // financial has no direct patient fields — handled in invoices
 
   const filtered: any = {};
   for (const key of Object.keys(patient)) {
@@ -53,9 +60,7 @@ router.post("/", async (req, res) => {
     afterState: patient
   });
 
-  // Return filtered to caller's permissions
   const filtered = filterPatient(patient, ctx.role);
-
   res.status(201).json({ data: { ...filtered, fhir } });
 });
 
@@ -69,7 +74,7 @@ router.get("/", async (req, res) => {
   const q = String(req.query.q ?? "").trim();
   const patients = await searchPatients(ctx.tenantId, q);
 
-  // List always returns minimal fields, filtered by permission
+  // Filter EVERY patient in the list — no leakage
   const filtered = patients.map((p) => filterPatient(p, ctx.role));
 
   res.json({ data: filtered });
@@ -91,15 +96,14 @@ router.get("/:id", async (req, res) => {
     resourceId: patient.id
   });
 
-  // Filter patient fields
   const filtered = filterPatient(patient, ctx.role);
 
-  // Attach related clinical data ONLY if the caller has clinical permission
-  if (can(ctx.role, "patient:read:clinical")) {
-    filtered.encounters = patient.encounters ?? [];
+  // Clinical data (encounters list) only for clinical users
+  if (can(ctx.role, "patient:read:clinical") && patient.encounters) {
+    filtered.encounters = patient.encounters;
   }
 
-  // Fetch related financial data if the caller has financial permission
+  // Financial data only for billing/financial users
   if (can(ctx.role, "patient:read:financial")) {
     const { prisma } = await import("@cura/db-client");
     const invoices = await prisma.invoice.findMany({
@@ -114,7 +118,7 @@ router.get("/:id", async (req, res) => {
   res.json({ data: filtered });
 });
 
-// ── PATCH /api/patients/:id — split by tier ──
+// ── PATCH /api/patients/:id ──
 const DEMOGRAPHIC_FIELDS = [
   "firstName",
   "middleName",

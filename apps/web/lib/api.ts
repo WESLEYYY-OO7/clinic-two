@@ -39,6 +39,18 @@ const request = async <T>(
       const body = await res.json();
       message = body.error || body.message || message;
     } catch {}
+
+    // Auto-logout on auth failures
+    if (res.status === 401) {
+      clearToken();
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("cura_user");
+        if (!window.location.pathname.startsWith("/login")) {
+          window.location.href = "/login";
+        }
+      }
+    }
+
     throw { message, status: res.status } as ApiError;
   }
 
@@ -107,7 +119,7 @@ export const auth = {
     }>("/api/me")
 };
 
-// ── Users (staff management) ──
+// ── Users ──
 export interface StaffRecord {
   id: string;
   email: string;
@@ -121,7 +133,6 @@ export interface StaffRecord {
 
 export const users = {
   list: () => api.get<{ data: StaffRecord[] }>("/api/users"),
-
   create: (payload: {
     email: string;
     password: string;
@@ -129,17 +140,8 @@ export const users = {
     role: string;
     phone?: string;
   }) => api.post<{ data: StaffRecord }>("/api/users", payload),
-
-  update: (
-    id: string,
-    payload: {
-      fullName?: string;
-      role?: string;
-      phone?: string;
-      isActive?: boolean;
-    }
-  ) => api.patch<{ data: StaffRecord }>(`/api/users/${id}`, payload),
-
+  update: (id: string, payload: Partial<StaffRecord>) =>
+    api.patch<{ data: StaffRecord }>(`/api/users/${id}`, payload),
   resetPassword: (id: string, password: string) =>
     api.post<{ data: { ok: boolean } }>(`/api/users/${id}/reset-password`, {
       password
@@ -384,7 +386,8 @@ export const invoices = {
     api.get<{ data: InvoiceRecord[] }>(
       `/api/invoices${patientId ? `?patientId=${patientId}` : ""}`
     ),
-  get: (id: string) => api.get<{ data: InvoiceRecord }>(`/api/invoices/${id}`),
+  get: (id: string) =>
+    api.get<{ data: InvoiceRecord }>(`/api/invoices/${id}`),
   create: (payload: {
     patientId: string;
     tax?: number;
@@ -557,7 +560,6 @@ export const locations = {
 export const stock = {
   levels: () =>
     api.get<{ data: StockLevelRecord[] }>("/api/stock/levels"),
-
   movements: (filter?: {
     itemId?: string;
     locationId?: string;
@@ -574,7 +576,6 @@ export const stock = {
       `/api/stock/movements${qs ? `?${qs}` : ""}`
     );
   },
-
   receive: (payload: {
     itemId: string;
     locationId: string;
@@ -588,7 +589,6 @@ export const stock = {
     api.post<{
       data: { batch: StockBatchRecord; movement: StockMovementRecord };
     }>("/api/stock/receive", payload),
-
   dispense: (payload: {
     itemId: string;
     locationId: string;
@@ -598,7 +598,6 @@ export const stock = {
     api.post<{
       data: { movements: StockMovementRecord[]; quantityDispensed: number };
     }>("/api/stock/dispense", payload),
-
   transfer: (payload: {
     itemId: string;
     fromLocationId: string;
@@ -609,7 +608,6 @@ export const stock = {
     api.post<{
       data: { from: StockMovementRecord[]; to: StockMovementRecord };
     }>("/api/stock/transfer", payload),
-
   adjust: (payload: {
     itemId: string;
     locationId: string;
@@ -618,7 +616,6 @@ export const stock = {
     reason: string;
   }) =>
     api.post<{ data: StockMovementRecord }>("/api/stock/adjust", payload),
-
   fefoPreview: (payload: {
     itemId: string;
     locationId: string;
@@ -627,5 +624,70 @@ export const stock = {
     api.post<{ data: { batch: StockBatchRecord | null } }>(
       "/api/stock/fefo-preview",
       payload
+    )
+};
+
+// ── Appointments ──
+export interface AppointmentRecord {
+  id: string;
+  patientId: string;
+  providerId: string;
+  startsAt: string;
+  endsAt: string;
+  status: string;
+  reason: string | null;
+  notes: string | null;
+  reminderSentAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  patient?: {
+    id: string;
+    mrn: string;
+    firstName: string;
+    lastName: string;
+    phone: string | null;
+  };
+}
+
+export const appointments = {
+  list: (filters?: {
+    patientId?: string;
+    providerId?: string;
+    status?: string;
+    from?: string;
+    to?: string;
+    limit?: number;
+  }) => {
+    const q = new URLSearchParams();
+    if (filters?.patientId) q.set("patientId", filters.patientId);
+    if (filters?.providerId) q.set("providerId", filters.providerId);
+    if (filters?.status) q.set("status", filters.status);
+    if (filters?.from) q.set("from", filters.from);
+    if (filters?.to) q.set("to", filters.to);
+    if (filters?.limit) q.set("limit", String(filters.limit));
+    const qs = q.toString();
+    return api.get<{ data: AppointmentRecord[] }>(
+      `/api/appointments${qs ? `?${qs}` : ""}`
+    );
+  },
+  get: (id: string) =>
+    api.get<{ data: AppointmentRecord }>(`/api/appointments/${id}`),
+  create: (payload: {
+    patientId: string;
+    providerId: string;
+    startsAt: string;
+    endsAt: string;
+    reason?: string;
+    notes?: string;
+  }) => api.post<{ data: AppointmentRecord }>("/api/appointments", payload),
+  setStatus: (id: string, status: string) =>
+    api.patch<{ data: AppointmentRecord }>(
+      `/api/appointments/${id}/status`,
+      { status }
+    ),
+  remind: (id: string) =>
+    api.post<{ data: { queued: boolean; jobId: string } }>(
+      `/api/appointments/${id}/remind`,
+      {}
     )
 };
