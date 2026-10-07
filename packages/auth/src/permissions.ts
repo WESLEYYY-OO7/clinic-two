@@ -7,6 +7,7 @@ export type Role =
   | "LAB_TECH"
   | "RECEPTIONIST"
   | "BILLING"
+  "claims"
   | "HR";
 
 export const PERMISSIONS: Record<Role, string[]> = {
@@ -109,7 +110,7 @@ export const ROLE_MENU: Record<Role, string[]> = {
   DOCTOR: ["dashboard", "patients", "appointments", "encounters", "inventory"],
   NURSE: ["dashboard", "patients", "appointments", "encounters", "inventory"],
   PHARMACIST: ["dashboard", "patients", "inventory"],
-  LAB_TECH: ["dashboard", "patients", "encounters"],
+  LAB_TECH: ["dashboard", "patients"],
   RECEPTIONIST: ["dashboard", "patients", "appointments"],
   BILLING: ["dashboard", "patients", "billing"],
   HR: ["dashboard", "settings"]

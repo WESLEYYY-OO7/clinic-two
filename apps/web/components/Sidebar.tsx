@@ -9,6 +9,7 @@ const NAV = [
   { key: "patients", href: "/patients", label: "Patients" },
   { key: "appointments", href: "/appointments", label: "Appointments" },
   { key: "encounters", href: "/encounters", label: "Encounters" },
+  { key: "claims", href: "/claims", label: "HMO Claims" },
   { key: "inventory", href: "/inventory", label: "Inventory" },
   { key: "billing", href: "/billing", label: "Billing" },
   { key: "settings", href: "/settings", label: "Settings" }

@@ -72,20 +72,28 @@ export default function DashboardPage() {
 
       <div className="mt-8 card">
         <h2 className="text-lg font-semibold text-slate-900">Quick actions</h2>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link href="/patients/new" className="btn btn-primary">
-            + New Patient
-          </Link>
-          <Link href="/patients" className="btn btn-secondary">
-            View Patients
-          </Link>
-          <Link href="/encounters/new" className="btn btn-secondary">
-            New Encounter
-          </Link>
-          <Link href="/billing/new" className="btn btn-secondary">
-            New Invoice
-          </Link>
-        </div>
+     <div className="mt-4 flex flex-wrap gap-3">
+  <Link href="/patients/new" className="btn btn-primary">
+    + New Patient
+  </Link>
+  <Link href="/patients" className="btn btn-secondary">
+    View Patients
+  </Link>
+
+  {/* Encounter link only for clinical roles */}
+  {user?.role && ["DOCTOR", "NURSE", "CLINIC_ADMIN"].includes(user.role) && (
+    <Link href="/encounters/new" className="btn btn-secondary">
+      New Encounter
+    </Link>
+  )}
+
+  {/* Invoice link only for billing roles */}
+  {user?.role && ["BILLING", "CLINIC_ADMIN"].includes(user.role) && (
+    <Link href="/billing/new" className="btn btn-secondary">
+      New Invoice
+    </Link>
+  )}
+</div>
       </div>
     </div>
   );

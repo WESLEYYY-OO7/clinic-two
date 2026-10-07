@@ -691,3 +691,88 @@ export const appointments = {
       {}
     )
 };
+// ── HMO Claims ──
+export interface ClaimRecord {
+  id: string;
+  patientId: string;
+  hmo: string;
+  claimNumber: string | null;
+  hmoMemberId: string;
+  planCode: string | null;
+  amount: string;
+  approvedAmount: string | null;
+  status: string;
+  diagnosisCodes: string[];
+  serviceDate: string | null;
+  submittedAt: string | null;
+  resolvedAt: string | null;
+  rejectionReason: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  patient?: {
+    id: string;
+    mrn: string;
+    firstName: string;
+    lastName: string;
+    phone?: string | null;
+  };
+}
+
+export interface EligibilityResult {
+  eligible: boolean;
+  plan?: string;
+  planCode?: string;
+  memberName?: string;
+  reason?: string;
+  copay?: number;
+}
+
+export const claims = {
+  listHmos: () =>
+    api.get<{ data: string[] }>("/api/claims/hmos"),
+
+  list: (filters?: { status?: string; hmo?: string; patientId?: string }) => {
+    const q = new URLSearchParams();
+    if (filters?.status) q.set("status", filters.status);
+    if (filters?.hmo) q.set("hmo", filters.hmo);
+    if (filters?.patientId) q.set("patientId", filters.patientId);
+    const qs = q.toString();
+    return api.get<{ data: ClaimRecord[] }>(
+      `/api/claims${qs ? `?${qs}` : ""}`
+    );
+  },
+
+  get: (id: string) =>
+    api.get<{ data: ClaimRecord }>(`/api/claims/${id}`),
+
+  verify: (payload: {
+    hmo: string;
+    hmoMemberId: string;
+    planCode?: string;
+  }) =>
+    api.post<{ data: EligibilityResult }>("/api/claims/verify", payload),
+
+  create: (payload: {
+    patientId: string;
+    hmo: string;
+    hmoMemberId: string;
+    planCode?: string;
+    amount: number;
+    diagnosisCodes?: string[];
+    serviceDate?: string;
+    notes?: string;
+  }) => api.post<{ data: ClaimRecord }>("/api/claims", payload),
+
+  submit: (id: string) =>
+    api.post<{ data: ClaimRecord }>(`/api/claims/${id}/submit`, {}),
+
+  setStatus: (
+    id: string,
+    payload: {
+      status: string;
+      approvedAmount?: number;
+      rejectionReason?: string;
+    }
+  ) => api.patch<{ data: ClaimRecord }>(`/api/claims/${id}/status`, payload)
+};
