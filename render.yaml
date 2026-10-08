@@ -1,5 +1,7 @@
 services:
-  # ── API (Free Web Service) ──
+  # ══════════════════════════════════════════════════════════
+  # API — Express backend (Express + Prisma)
+  # ══════════════════════════════════════════════════════════
   - type: web
     name: cura-api
     runtime: node
@@ -8,6 +10,7 @@ services:
     branch: main
     rootDir: .
     buildCommand: |
+      corepack enable
       pnpm install --frozen-lockfile
       pnpm --filter @cura/db-client exec prisma generate
       pnpm --filter @cura/api build
@@ -26,10 +29,14 @@ services:
           property: connectionString
       - key: WEB_ORIGIN
         value: https://cura-web.onrender.com
+      - key: PORT
+        value: 4000
       - key: API_PORT
         value: 4000
 
-  # ── Web (Free Web Service) ──
+  # ══════════════════════════════════════════════════════════
+  # WEB — Next.js frontend
+  # ══════════════════════════════════════════════════════════
   - type: web
     name: cura-web
     runtime: node
@@ -38,9 +45,10 @@ services:
     branch: main
     rootDir: .
     buildCommand: |
+      corepack enable
       pnpm install --frozen-lockfile
-      pnpm --filter @cura/web build
-    startCommand: pnpm --filter @cura/web start
+      cd apps/web && pnpm exec next build
+    startCommand: cd apps/web && pnpm exec next start -p $PORT
     envVars:
       - key: NODE_ENV
         value: production
@@ -49,7 +57,11 @@ services:
       - key: WEB_ORIGIN
         value: https://cura-web.onrender.com
 
+# ══════════════════════════════════════════════════════════
+# Database — Managed PostgreSQL (free tier)
+# ══════════════════════════════════════════════════════════
 databases:
   - name: cura-db
     plan: free
     region: frankfurt
+    postgresMajorVersion: 16
