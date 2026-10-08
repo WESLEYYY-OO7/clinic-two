@@ -1,3 +1,5 @@
+const path = require("path");
+
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -7,9 +9,10 @@ const nextConfig = {
     "@cura/auth",
     "@cura/db-client"
   ],
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.alias = {
-      ...config.resolve.alias
+      ...config.resolve.alias,
+      "@": path.resolve(__dirname)
     };
     return config;
   }
