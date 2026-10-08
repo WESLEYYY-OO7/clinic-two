@@ -64,4 +64,3 @@ databases:
   - name: cura-db
     plan: free
     region: frankfurt
-    postgresMajorVersion: 16
