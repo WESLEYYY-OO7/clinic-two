@@ -20,8 +20,10 @@ process.on("unhandledRejection", (reason) => {
 });
 
 const app = express();
-app.use(helmet());
-app.use(cors({ origin: true, credentials: true }));
+const corsOptions = { origin: true, credentials: true };
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(express.json({ limit: "2mb" }));
 
 app.use("/health", healthRoutes);
@@ -30,7 +32,7 @@ app.use("/api", authMiddleware, tenantMiddleware, apiRoutes);
 
 app.use(errorHandler);
 
-const port = Number(process.env.API_PORT) || 4000;
+const port = Number(process.env.PORT || process.env.API_PORT) || 4000;
 app.listen(port, () => {
   console.log(`🩺 Cura Health API listening on http://localhost:${port}`);
 });
