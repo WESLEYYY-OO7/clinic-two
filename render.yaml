@@ -1,7 +1,4 @@
 services:
-  # ══════════════════════════════════════════════════════════
-  # API — Express backend (Express + Prisma)
-  # ══════════════════════════════════════════════════════════
   - type: web
     name: cura-api
     runtime: node
@@ -13,7 +10,6 @@ services:
       corepack enable
       pnpm install --frozen-lockfile
       pnpm --filter @cura/db-client exec prisma generate
-      pnpm --filter @cura/api build
     startCommand: pnpm --filter @cura/api start
     healthCheckPath: /health
     envVars:
@@ -29,14 +25,7 @@ services:
           property: connectionString
       - key: WEB_ORIGIN
         value: https://cura-web.onrender.com
-      - key: PORT
-        value: 4000
-      - key: API_PORT
-        value: 4000
 
-  # ══════════════════════════════════════════════════════════
-  # WEB — Next.js frontend
-  # ══════════════════════════════════════════════════════════
   - type: web
     name: cura-web
     runtime: node
@@ -57,9 +46,6 @@ services:
       - key: WEB_ORIGIN
         value: https://cura-web.onrender.com
 
-# ══════════════════════════════════════════════════════════
-# Database — Managed PostgreSQL (free tier)
-# ══════════════════════════════════════════════════════════
 databases:
   - name: cura-db
     plan: free
