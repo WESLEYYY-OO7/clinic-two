@@ -66,7 +66,10 @@ export const api = {
   delete: <T>(path: string) => request<T>(path, { method: "DELETE" })
 };
 
-// ── Auth ──
+// ═══════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════
+
 export const auth = {
   setToken,
   getToken,
@@ -119,7 +122,10 @@ export const auth = {
     }>("/api/me")
 };
 
-// ── Users ──
+// ═══════════════════════════════════════════════════════
+// USERS / STAFF
+// ═══════════════════════════════════════════════════════
+
 export interface StaffRecord {
   id: string;
   email: string;
@@ -148,7 +154,10 @@ export const users = {
     })
 };
 
-// ── Patients ──
+// ═══════════════════════════════════════════════════════
+// PATIENTS
+// ═══════════════════════════════════════════════════════
+
 export interface PatientRecord {
   id: string;
   mrn: string;
@@ -179,7 +188,10 @@ export const patients = {
     api.get<{ data: PatientRecord }>(`/api/patients/${id}`)
 };
 
-// ── Encounters ──
+// ═══════════════════════════════════════════════════════
+// ENCOUNTERS
+// ═══════════════════════════════════════════════════════
+
 export interface EncounterRecord {
   id: string;
   patientId: string;
@@ -209,7 +221,10 @@ export const encounters = {
     api.patch<{ data: EncounterRecord }>(`/api/encounters/${id}/finish`, {})
 };
 
-// ── Vitals ──
+// ═══════════════════════════════════════════════════════
+// VITALS
+// ═══════════════════════════════════════════════════════
+
 export interface VitalRecord {
   id: string;
   encounterId: string;
@@ -241,7 +256,10 @@ export const vitals = {
   }) => api.post<{ data: VitalRecord }>("/api/vitals", payload)
 };
 
-// ── Notes ──
+// ═══════════════════════════════════════════════════════
+// NOTES
+// ═══════════════════════════════════════════════════════
+
 export interface NoteRecord {
   id: string;
   encounterId: string;
@@ -258,7 +276,10 @@ export const notes = {
     api.post<{ data: NoteRecord }>("/api/notes", payload)
 };
 
-// ── Diagnoses ──
+// ═══════════════════════════════════════════════════════
+// DIAGNOSES
+// ═══════════════════════════════════════════════════════
+
 export interface DiagnosisRecord {
   id: string;
   encounterId: string;
@@ -277,7 +298,10 @@ export const diagnoses = {
   }) => api.post<{ data: DiagnosisRecord }>("/api/diagnoses", payload)
 };
 
-// ── Drugs ──
+// ═══════════════════════════════════════════════════════
+// DRUGS
+// ═══════════════════════════════════════════════════════
+
 export interface DrugRecord {
   id: string;
   name: string;
@@ -290,7 +314,10 @@ export const drugs = {
   list: () => api.get<{ data: DrugRecord[] }>("/api/drugs")
 };
 
-// ── Prescriptions ──
+// ═══════════════════════════════════════════════════════
+// PRESCRIPTIONS
+// ═══════════════════════════════════════════════════════
+
 export interface PrescriptionRecord {
   id: string;
   patientId: string;
@@ -341,7 +368,10 @@ export const prescriptions = {
     }>("/api/prescriptions", payload)
 };
 
-// ── Invoices + Payments ──
+// ═══════════════════════════════════════════════════════
+// INVOICES + PAYMENTS
+// ═══════════════════════════════════════════════════════
+
 export interface InvoiceLineItem {
   id: string;
   description: string;
@@ -411,7 +441,10 @@ export const payments = {
     )
 };
 
-// ── Lab ──
+// ═══════════════════════════════════════════════════════
+// LAB
+// ═══════════════════════════════════════════════════════
+
 export interface LabTestRecord {
   id: string;
   code: string;
@@ -464,7 +497,10 @@ export const lab = {
     )
 };
 
-// ── Inventory ──
+// ═══════════════════════════════════════════════════════
+// INVENTORY
+// ═══════════════════════════════════════════════════════
+
 export interface ItemRecord {
   id: string;
   code: string;
@@ -560,6 +596,7 @@ export const locations = {
 export const stock = {
   levels: () =>
     api.get<{ data: StockLevelRecord[] }>("/api/stock/levels"),
+
   movements: (filter?: {
     itemId?: string;
     locationId?: string;
@@ -576,6 +613,7 @@ export const stock = {
       `/api/stock/movements${qs ? `?${qs}` : ""}`
     );
   },
+
   receive: (payload: {
     itemId: string;
     locationId: string;
@@ -589,6 +627,7 @@ export const stock = {
     api.post<{
       data: { batch: StockBatchRecord; movement: StockMovementRecord };
     }>("/api/stock/receive", payload),
+
   dispense: (payload: {
     itemId: string;
     locationId: string;
@@ -598,6 +637,7 @@ export const stock = {
     api.post<{
       data: { movements: StockMovementRecord[]; quantityDispensed: number };
     }>("/api/stock/dispense", payload),
+
   transfer: (payload: {
     itemId: string;
     fromLocationId: string;
@@ -608,6 +648,7 @@ export const stock = {
     api.post<{
       data: { from: StockMovementRecord[]; to: StockMovementRecord };
     }>("/api/stock/transfer", payload),
+
   adjust: (payload: {
     itemId: string;
     locationId: string;
@@ -616,6 +657,7 @@ export const stock = {
     reason: string;
   }) =>
     api.post<{ data: StockMovementRecord }>("/api/stock/adjust", payload),
+
   fefoPreview: (payload: {
     itemId: string;
     locationId: string;
@@ -627,7 +669,10 @@ export const stock = {
     )
 };
 
-// ── Appointments ──
+// ═══════════════════════════════════════════════════════
+// APPOINTMENTS
+// ═══════════════════════════════════════════════════════
+
 export interface AppointmentRecord {
   id: string;
   patientId: string;
@@ -635,9 +680,15 @@ export interface AppointmentRecord {
   startsAt: string;
   endsAt: string;
   status: string;
+  visitStatus: string;
+  encounterId: string | null;
   reason: string | null;
   notes: string | null;
   reminderSentAt: string | null;
+  checkedInAt: string | null;
+  vitalsDoneAt: string | null;
+  consultationAt: string | null;
+  completedAt: string | null;
   createdAt: string;
   updatedAt: string;
   patient?: {
@@ -646,6 +697,9 @@ export interface AppointmentRecord {
     firstName: string;
     lastName: string;
     phone: string | null;
+    dateOfBirth?: string;
+    gender?: string;
+    allergies?: string[];
   };
 }
 
@@ -654,6 +708,7 @@ export const appointments = {
     patientId?: string;
     providerId?: string;
     status?: string;
+    visitStatus?: string;
     from?: string;
     to?: string;
     limit?: number;
@@ -662,6 +717,7 @@ export const appointments = {
     if (filters?.patientId) q.set("patientId", filters.patientId);
     if (filters?.providerId) q.set("providerId", filters.providerId);
     if (filters?.status) q.set("status", filters.status);
+    if (filters?.visitStatus) q.set("visitStatus", filters.visitStatus);
     if (filters?.from) q.set("from", filters.from);
     if (filters?.to) q.set("to", filters.to);
     if (filters?.limit) q.set("limit", String(filters.limit));
@@ -691,7 +747,42 @@ export const appointments = {
       {}
     )
 };
-// ── HMO Claims ──
+
+// ═══════════════════════════════════════════════════════
+// WORKFLOW (Visit State Machine)
+// ═══════════════════════════════════════════════════════
+
+export interface AppointmentWithVisit extends AppointmentRecord {}
+
+export interface VisitQueue {
+  SCHEDULED: AppointmentWithVisit[];
+  CHECKED_IN: AppointmentWithVisit[];
+  VITALS_DONE: AppointmentWithVisit[];
+  IN_CONSULTATION: AppointmentWithVisit[];
+  RX_WRITTEN: AppointmentWithVisit[];
+  DISPENSED: AppointmentWithVisit[];
+  BILLED: AppointmentWithVisit[];
+  DONE: AppointmentWithVisit[];
+}
+
+export const workflow = {
+  queue: () =>
+    api.get<{ data: VisitQueue }>("/api/appointments/queue"),
+
+  today: () =>
+    api.get<{ data: AppointmentWithVisit[] }>("/api/appointments/today"),
+
+  advance: (appointmentId: string, visitStatus: string, encounterId?: string) =>
+    api.patch<{ data: AppointmentWithVisit }>(
+      `/api/appointments/${appointmentId}/visit`,
+      { visitStatus, ...(encounterId ? { encounterId } : {}) }
+    )
+};
+
+// ═══════════════════════════════════════════════════════
+// HMO CLAIMS
+// ═══════════════════════════════════════════════════════
+
 export interface ClaimRecord {
   id: string;
   patientId: string;
@@ -776,7 +867,11 @@ export const claims = {
     }
   ) => api.patch<{ data: ClaimRecord }>(`/api/claims/${id}/status`, payload)
 };
-// ── Dashboard Stats ──
+
+// ═══════════════════════════════════════════════════════
+// DASHBOARD STATS (types only)
+// ═══════════════════════════════════════════════════════
+
 export interface BillingStats {
   monthly: { month: string; revenue: number; outstanding: number }[];
   totals: { revenue: number; outstanding: number };
@@ -791,65 +886,3 @@ export interface ClaimStats {
   byStatus: { status: string; count: number; amount: number }[];
   totals: { count: number; approvedAmount: number };
 }
-
-export const dashboard = {
-  billing: () => api.get<{ data: BillingStats }>("/api/invoices/stats"),
-  encounters: () =>
-    api.get<{ data: EncounterStats }>("/api/encounters/stats"),
-  claims: () =>
-    api
-      .list
-      ? null
-      : null, // claims stats pulled from claims.list() on the client
-  lowStock: () =>
-    api
-      .get<{
-        data: {
-          id: string;
-          code: string;
-          name: string;
-          total: number;
-          reorderLevel: number;
-        }[];
-      }>("/api/stock/levels")
-      .then((res) => ({
-        data: res.data
-          .filter((i) => i.total < i.reorderLevel)
-          .sort((a, b) => a.total - b.total)
-          .slice(0, 5)
-      }))
-};
-// ── Workflow ──
-export interface AppointmentWithVisit extends AppointmentRecord {
-  visitStatus: string;
-  encounterId: string | null;
-  checkedInAt: string | null;
-  vitalsDoneAt: string | null;
-  consultationAt: string | null;
-  completedAt: string | null;
-}
-
-export interface VisitQueue {
-  SCHEDULED: AppointmentWithVisit[];
-  CHECKED_IN: AppointmentWithVisit[];
-  VITALS_DONE: AppointmentWithVisit[];
-  IN_CONSULTATION: AppointmentWithVisit[];
-  RX_WRITTEN: AppointmentWithVisit[];
-  DISPENSED: AppointmentWithVisit[];
-  BILLED: AppointmentWithVisit[];
-  DONE: AppointmentWithVisit[];
-}
-
-export const workflow = {
-  queue: () =>
-    api.get<{ data: VisitQueue }>("/api/appointments/queue"),
-
-  today: () =>
-    api.get<{ data: AppointmentWithVisit[] }>("/api/appointments/today"),
-
-  advance: (appointmentId: string, visitStatus: string, encounterId?: string) =>
-    api.patch<{ data: AppointmentWithVisit }>(
-      `/api/appointments/${appointmentId}/visit`,
-      { visitStatus, ...(encounterId ? { encounterId } : {}) }
-    )
-};
