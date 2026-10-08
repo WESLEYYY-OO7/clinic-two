@@ -819,3 +819,37 @@ export const dashboard = {
           .slice(0, 5)
       }))
 };
+// ── Workflow ──
+export interface AppointmentWithVisit extends AppointmentRecord {
+  visitStatus: string;
+  encounterId: string | null;
+  checkedInAt: string | null;
+  vitalsDoneAt: string | null;
+  consultationAt: string | null;
+  completedAt: string | null;
+}
+
+export interface VisitQueue {
+  SCHEDULED: AppointmentWithVisit[];
+  CHECKED_IN: AppointmentWithVisit[];
+  VITALS_DONE: AppointmentWithVisit[];
+  IN_CONSULTATION: AppointmentWithVisit[];
+  RX_WRITTEN: AppointmentWithVisit[];
+  DISPENSED: AppointmentWithVisit[];
+  BILLED: AppointmentWithVisit[];
+  DONE: AppointmentWithVisit[];
+}
+
+export const workflow = {
+  queue: () =>
+    api.get<{ data: VisitQueue }>("/api/appointments/queue"),
+
+  today: () =>
+    api.get<{ data: AppointmentWithVisit[] }>("/api/appointments/today"),
+
+  advance: (appointmentId: string, visitStatus: string, encounterId?: string) =>
+    api.patch<{ data: AppointmentWithVisit }>(
+      `/api/appointments/${appointmentId}/visit`,
+      { visitStatus, ...(encounterId ? { encounterId } : {}) }
+    )
+};

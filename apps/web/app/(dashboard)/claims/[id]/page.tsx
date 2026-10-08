@@ -33,6 +33,14 @@ export default function ClaimDetailPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
+  // Inline modal state — replaces prompt()
+  const [dialog, setDialog] = useState<
+    | { kind: "approved-amount"; status: string }
+    | { kind: "rejection-reason"; status: string }
+    | null
+  >(null);
+  const [dialogValue, setDialogValue] = useState("");
+
   const refresh = async () => {
     try {
       const res = await claimsApi.get(id);
@@ -63,37 +71,19 @@ export default function ClaimDetailPage() {
     }
   };
 
-  const handleStatus = async (status: string) => {
+  const applyStatus = async (
+    status: string,
+    approvedAmount?: number,
+    rejectionReason?: string
+  ) => {
     setSaving(true);
     setError("");
     try {
-      let approvedAmount: number | undefined;
-      let rejectionReason: string | undefined;
-
-      if (status === "APPROVED" || status === "PARTIALLY_APPROVED") {
-        const input = prompt(`Approved amount (₦)?`);
-        if (input === null) {
-          setSaving(false);
-          return;
-        }
-        approvedAmount = Number(input) || 0;
-      }
-
-      if (status === "DENIED") {
-        const input = prompt("Reason for denial?");
-        if (input === null) {
-          setSaving(false);
-          return;
-        }
-        rejectionReason = input;
-      }
-
       await claimsApi.setStatus(id, {
         status,
         ...(approvedAmount !== undefined ? { approvedAmount } : {}),
         ...(rejectionReason ? { rejectionReason } : {})
       });
-
       setToast(`Marked as ${LABELS[status] ?? status}`);
       await refresh();
       setTimeout(() => setToast(null), 5000);
@@ -102,6 +92,33 @@ export default function ClaimDetailPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleStatus = (status: string) => {
+    if (status === "APPROVED" || status === "PARTIALLY_APPROVED") {
+      setDialogValue("");
+      setDialog({ kind: "approved-amount", status });
+      return;
+    }
+    if (status === "DENIED") {
+      setDialogValue("");
+      setDialog({ kind: "rejection-reason", status });
+      return;
+    }
+    // No input needed
+    applyStatus(status);
+  };
+
+  const confirmDialog = () => {
+    if (!dialog) return;
+    if (dialog.kind === "approved-amount") {
+      const num = Number(dialogValue) || 0;
+      applyStatus(dialog.status, num);
+    } else if (dialog.kind === "rejection-reason") {
+      applyStatus(dialog.status, undefined, dialogValue);
+    }
+    setDialog(null);
+    setDialogValue("");
   };
 
   if (error && !claim) {
@@ -118,6 +135,7 @@ export default function ClaimDetailPage() {
   if (!claim) return <p className="muted">Loading…</p>;
 
   const allowed = TRANSITIONS[claim.status] ?? [];
+
   const statusBadge = (status: string) => {
     switch (status) {
       case "DRAFT": return "badge-slate";
@@ -288,6 +306,78 @@ export default function ClaimDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Inline modal (replaces browser prompt) ── */}
+      {dialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="card w-full max-w-md shadow-2xl">
+            <h2 className="text-lg font-semibold text-slate-900">
+              {dialog.kind === "approved-amount"
+                ? `Approved amount for ${LABELS[dialog.status] ?? dialog.status}`
+                : "Reason for denial"}
+            </h2>
+            <p className="muted mt-1 text-sm">
+              {dialog.kind === "approved-amount"
+                ? `Amount claimed: ₦${Number(claim.amount).toLocaleString()}`
+                : "Explain why this claim is being denied."}
+            </p>
+
+            <div className="mt-4">
+              {dialog.kind === "approved-amount" ? (
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className="input"
+                  value={dialogValue}
+                  onChange={(e) => setDialogValue(e.target.value)}
+                  placeholder="e.g. 25000"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") confirmDialog();
+                    if (e.key === "Escape") setDialog(null);
+                  }}
+                />
+              ) : (
+                <textarea
+                  className="input"
+                  rows={3}
+                  value={dialogValue}
+                  onChange={(e) => setDialogValue(e.target.value)}
+                  placeholder="Reason…"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setDialog(null);
+                  }}
+                />
+              )}
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                className="btn btn-primary flex-1"
+                onClick={confirmDialog}
+                disabled={
+                  dialog.kind === "approved-amount" && !dialogValue.trim()
+                }
+              >
+                Confirm
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setDialog(null);
+                  setDialogValue("");
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

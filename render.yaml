@@ -1,0 +1,82 @@
+services:
+  - type: web
+    name: cura-api
+    runtime: node
+    plan: starter
+    region: frankfurt
+    branch: main
+    rootDir: .
+    buildCommand: |
+      pnpm install --frozen-lockfile
+      pnpm --filter @cura/db-client exec prisma generate
+      pnpm --filter @cura/api build
+    startCommand: pnpm --filter @cura/api start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cura-db
+          property: connectionString
+      - key: WEB_ORIGIN
+        value: https://cura-web.onrender.com
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: cura-redis
+          property: connectionString
+
+  - type: web
+    name: cura-web
+    runtime: node
+    plan: starter
+    region: frankfurt
+    branch: main
+    rootDir: .
+    buildCommand: |
+      pnpm install --frozen-lockfile
+      pnpm --filter @cura/web build
+    startCommand: pnpm --filter @cura/web start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://cura-api.onrender.com
+
+  - type: worker
+    name: cura-worker
+    runtime: node
+    plan: starter
+    region: frankfurt
+    branch: main
+    rootDir: .
+    buildCommand: |
+      pnpm install --frozen-lockfile
+      pnpm --filter @cura/worker build
+    startCommand: pnpm --filter @cura/worker start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cura-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: cura-redis
+          property: connectionString
+
+databases:
+  - name: cura-db
+    plan: free
+    region: frankfurt
+
+  - name: cura-redis
+    plan: free
+    region: frankfurt
